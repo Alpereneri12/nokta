@@ -10,7 +10,7 @@
 
 
 ### 🎥 Demo Videosu (60 Saniye)
-[Buraya Drive'a yüklediğin video linkini yapıştır]
+(https://www.youtube.com/shorts/U22ndn50-mM)
 
 ### 📝 Decision Log (Karar Günlüğü)
 1. **Teknoloji Seçimi:** React Native ve Expo tercih edildi çünkü hızlı prototipleme ve kolay dağıtım imkanı sağlıyor.
