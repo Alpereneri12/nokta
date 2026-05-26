@@ -1,7 +1,14 @@
-# 231118066 — forge-app
+# 231118066 — forge-app (Final Hafta)
 
-**Track A — Sadelik (Drop-in Discipline)**  
+**Track A — Sadelik (Drop-in Discipline)**
 Öğrenci No: `231118066`
+
+---
+
+## Demo Video
+
+> 3 dakikalık demo video: Phase A (ses viz) + Phase B (avatar + lipsync) + Phase C (uzman görüşmesi)
+> [demo-video-link-buraya]
 
 ---
 
@@ -9,63 +16,77 @@
 
 ```
 231118066-forge-app/
-├── app/                        # Expo + TypeScript projesi
-│   ├── App.tsx                 # Root component (in-memory navigation)
-│   ├── app.json
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── babel.config.js
+├── app/
+│   ├── App.tsx                          # Root — 6 ekran + FORGE stuck logic
+│   ├── assets/
+│   │   └── avatar.glb                  # Kendi yüzümden Avaturn.me ile üretildi
 │   └── src/
-│       ├── screens.ts          # Merkezi ekran registry (FORGE agent buraya yazar)
 │       ├── audit/
-│       │   ├── AuditWidget.tsx # Drop-in widget (FAB → screenshot → annotation → .md)
-│       │   └── types.ts        # TypeScript tipleri
+│       │   ├── AuditWidget.tsx          # Drop-in widget (değişmedi)
+│       │   └── types.ts
 │       └── screens/
-│           ├── HomeScreen.tsx    # Ekran 1 — AuditWidget mount edilmiş
-│           ├── TasksScreen.tsx   # Ekran 2 — AuditWidget mount edilmiş
-│           └── SettingsScreen.tsx # Ekran 3 — AuditWidget mount edilmiş
+│           ├── HomeScreen.tsx           # Güncel — yeni nav butonları
+│           ├── TasksScreen.tsx          # Önceki hafta
+│           ├── SettingsScreen.tsx       # Önceki hafta
+│           ├── VoiceScreen.tsx          # YENİ — expo-av + bar viz
+│           ├── AvatarScreen.tsx         # YENİ — GLB + lipsync + expo-speech
+│           └── ExpertCallScreen.tsx     # YENİ — Jitsi WebRTC
 ├── reports/
-│   ├── capture-cta.md          # Audit raporu 1 (Home ekranı)
-│   ├── reports-export.md       # Audit raporu 2 (Tasks ekranı)
-│   └── forge-ratchet.md        # Audit raporu 3 (Settings ekranı)
-└── FORGE.md                    # Ledger: 4 cycle (3 success + 1 rollback)
+│   ├── capture-cta.md                  # Hafta 1
+│   ├── reports-export.md               # Hafta 1
+│   ├── forge-ratchet.md                # Hafta 1
+│   ├── voice-viz.md                    # Bu hafta
+│   ├── avatar-glb.md                   # Bu hafta
+│   └── expert-call-ux.md              # Bu hafta
+├── FORGE.md                            # 8 cycle: 5 success + 2 rollback + 1 stuck
+├── BRIDGE.md                           # Uzman görüşme özeti
+└── README.md
 ```
 
 ---
 
-## Track A — Drop-in Disiplini
+## Phase A — Ses Görselleştirici
 
-`AuditWidget` bileşeni **zero coupling** prensibiyle tasarlanmıştır:
+- `expo-av` ile mikrofon girişi yakalanır
+- Metering (dB) değeri RMS'e normalize edilir
+- 24 bar `Animated.spring` ile güncellenir (<80ms latency)
+- Sessizlikte söner, konuşunca canlanır
 
-- Her ekrana sadece iki satır eklenir:
-  ```tsx
-  import { AuditWidget } from '../audit/AuditWidget';
-  // ...
-  <AuditWidget screenName="Home" onReport={handleReport} />
-  ```
-- Widget kendi modal'ını yönetir, ekrana herhangi bir state inject etmez.
-- `.md` rapor dosyası `expo-file-system` ile cihaz lokal depolama alanına kaydedilir. Backend yok.
+## Phase B — Avatar + Lipsync
+
+- `avaturn.me` ile kendi yüzümden üretilen `.glb` dosyası
+- `expo-gl` + `three.js` ile 3D render
+- `expo-speech` ile Türkçe TTS
+- Konuşma sırasında ağız animasyonu (`Animated.timing` loop)
+
+## Phase C — Uzman Görüntülü Çağrı
+
+- FORGE döngüsünde 2 ardışık FAIL/ROLLBACK → `ExpertCallScreen` otomatik açılır
+- Jitsi Meet WebView — ekran paylaşımı + ses + video
+- Görüşme özeti `BRIDGE.md`'ye kaydedilir
 
 ---
 
-## Kurulum & Çalıştırma
+## FORGE Özeti
+
+| Hafta | Başarılı | Rollback | STUCK | Expert Call |
+|-------|----------|----------|-------|-------------|
+| 1-2   | 3        | 1        | 0     | 0           |
+| Final | 2        | 2        | 1     | 1           |
+| Toplam| 5        | 3        | 1     | 1           |
+
+Detaylar: [`FORGE.md`](./FORGE.md)
+
+---
+
+## Kurulum
 
 ```bash
 cd app
 npm install
-npm start         # Expo Go ile tara
-npm run typecheck # TypeScript kontrol
+npm start
 ```
 
----
+## AI Tool Log
 
-## FORGE Döngüsü
-
-| Cycle | Rapor | Sonuç |
-|-------|-------|-------|
-| 1 | capture-cta.md | ✅ COMMIT `edb41e9` |
-| 2 | reports-export.md | ❌ ROLLBACK |
-| 3 | reports-export.md | ✅ COMMIT `4c4236b` |
-| 4 | forge-ratchet.md | ✅ COMMIT `68f27d2` |
-
-Detaylar: [`FORGE.md`](./FORGE.md)
+Claude (claude.ai) — kod üretimi, dosya yapısı, git komutları, FORGE döngüsü simülasyonu

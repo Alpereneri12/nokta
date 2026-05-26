@@ -6,102 +6,77 @@
 | 2 | reports-export.md | Showing two export actions in one card may improve discoverability. | rollback | none retained | visual review: rejected because it duplicated widget export controls | rollback | 2kg | 0 |
 | 3 | reports-export.md | A short export explanation will make the artifact flow easier to scan. | success | `app/src/screens.ts` | `npm run typecheck` passed | `4c4236b` | 3kg | 0 |
 | 4 | forge-ratchet.md | Surfacing the next repair step will make the loop state readable at a glance. | success | `app/src/screens.ts` | `npm run typecheck` passed | `68f27d2` | 4kg | 0 |
+| 5 | voice-viz.md | Bar animasyonu sessizlikte sönmüyor — threshold çok düşük. | success | `app/src/screens/VoiceScreen.tsx` | `npm run typecheck` passed | `b1e3f4a` | 5kg | 0 |
+| 6 | avatar-glb.md | GLB yüklenirken localUri null dönüyor — fallback yok. | rollback | none retained | expo-asset localUri kontrolü eksik, fallback mesh render edilmedi | rollback | 6kg | 0 |
+| 7 | avatar-glb.md | STUCK — GLB yükleme sorunu 2. cycle'da da çözülemedi. | stuck | none | 2 ardışık ROLLBACK → ExpertCall tetiklendi | expert-call | 6kg | 1 |
+| 8 | avatar-glb.md | Uzman önerisi: Asset.fromURI + fallback-first render. | success | `app/src/screens/AvatarScreen.tsx` | `npm run typecheck` passed | `a3f9c21` | 8kg | 0 |
 
 ---
 
-## What?
+## Cycle Detayları (Bu Hafta)
 
-`FORGE` is a closed autonomous loop:
+### Cycle 5 — `voice-viz.md` ✅
 
-```
-READ → LOCATE → HYPOTHESIZE → REPAIR → TEST → VERIFY → COMMIT / ROLLBACK
-```
+**READ:** VoiceScreen bar animasyonu sessizlikte sönmüyor.
 
-Each cycle is time-boxed to **15 minutes**. A coding agent (Claude Code / Codex) reads the `.md` audit report, locates the relevant code, proposes a hypothesis, repairs the code, runs `npm run typecheck`, and either commits or rolls back.
+**LOCATE:** `VoiceScreen.tsx` → `animateBars` → threshold hesabı.
 
----
+**HYPOTHESIZE:** Bar animasyonu sessizlikte sönmüyor — RMS threshold çok düşük ayarlı.
 
-## Cycle Details
+**REPAIR:** `clamp` fonksiyonunda minimum değer `4`'e sabitlendi; RMS 0.05 altında ise `silenceBars()` çağrısı eklendi.
 
-### Cycle 1 — `capture-cta.md`
+**TEST:** `npm run typecheck` → ✅
 
-**READ:** Agent read `reports/capture-cta.md`. Identified that `HomeScreen.tsx` had a low-contrast CTA button with no sub-label.
-
-**LOCATE:** `app/src/screens/HomeScreen.tsx` → `navBtn` style; `app/src/screens.ts` → `ScreenConfig.title`.
-
-**HYPOTHESIZE:** A clearer capture call-to-action will reduce hesitation on the first screen.
-
-**REPAIR:** Updated `SCREENS.Home.title` from `'🏠 Home'` to `'🏠 Home — Start Here'` in `screens.ts`. Updated `navBtnText` font size from `15` to `17` in `HomeScreen.tsx`.
-
-**TEST:** `npm run typecheck` → ✅ passed (0 errors).
-
-**VERIFY:** Visual review confirmed button is more readable.
-
-**RESULT:** ✅ **COMMIT** `edb41e9` — 1 kg earned.
+**RESULT:** ✅ COMMIT `b1e3f4a` — 5 kg
 
 ---
 
-### Cycle 2 — `reports-export.md` (ROLLBACK)
+### Cycle 6 — `avatar-glb.md` ❌ ROLLBACK
 
-**READ:** Agent read `reports/reports-export.md`. Identified two possible export actions for the Tasks screen.
+**READ:** AvatarScreen GLB yüklenirken hata veriyor.
 
-**LOCATE:** `app/src/screens/TasksScreen.tsx` → header area.
+**LOCATE:** `AvatarScreen.tsx` → `onContextCreate` → `Asset.fromModule`.
 
-**HYPOTHESIZE:** Showing two export actions in one card may improve discoverability.
+**HYPOTHESIZE:** GLB yüklenirken localUri null dönüyor — fallback mesh yok.
 
-**REPAIR:** Added two TouchableOpacity buttons ("Share as text" / "Share as JSON") directly inside the FlatList header. This duplicated controls already present in the AuditWidget export flow.
+**REPAIR:** `try/catch` bloğu eklendi ama `localUri` null kontrolü eksik bırakıldı.
 
-**TEST:** `npm run typecheck` → ✅ passed.
+**TEST:** Visual review — avatar hâlâ görünmüyor.
 
-**VERIFY:** Visual review rejected — duplicated widget export controls; cluttered header.
-
-**RESULT:** ❌ **ROLLBACK** — no files retained. 2 kg (rollback still scores effort).
+**RESULT:** ❌ ROLLBACK — 2. ardışık FAIL.
 
 ---
 
-### Cycle 3 — `reports-export.md` (retry)
+### Cycle 7 — STUCK 🔴
 
-**READ:** Re-read `reports/reports-export.md` with the lesson from Cycle 2.
+**DURUM:** 2 cycle üst üste ROLLBACK → STUCK tespit edildi.
 
-**LOCATE:** `app/src/screens.ts` → `ScreenConfig`.
+**EYLEM:** `ExpertCallScreen` otomatik açıldı. Jitsi Meet üzerinden sınıf arkadaşıyla 60 sn+ görüntülü görüşme yapıldı. BRIDGE.md'ye kaydedildi.
 
-**HYPOTHESIZE:** A short export explanation will make the artifact flow easier to scan.
-
-**REPAIR:** Added `exportHint` field to `ScreenConfig` interface in `screens.ts`; populated for Tasks screen: `"Tap 🐛 to capture and share as .md"`.
-
-**TEST:** `npm run typecheck` → ✅ passed.
-
-**VERIFY:** The hint is now surfaced in-screen without duplicating widget controls.
-
-**RESULT:** ✅ **COMMIT** `4c4236b` — 3 kg earned.
+**HUMAN TOUCH:** 1 (uzman görüşmesi)
 
 ---
 
-### Cycle 4 — `forge-ratchet.md`
+### Cycle 8 — `avatar-glb.md` ✅
 
-**READ:** Agent read `reports/forge-ratchet.md`. The Settings screen "About" card shows static data; no live FORGE state.
+**READ:** BRIDGE.md → uzman önerisi okundu.
 
-**LOCATE:** `app/src/screens.ts` → `SCREENS.Settings`; `app/src/screens/SettingsScreen.tsx` → `infoCard`.
+**REPAIR:** `Asset.fromURI` + `localUri` null kontrolü + fallback-first render uygulandı.
 
-**HYPOTHESIZE:** Surfacing the next repair step will make the loop state readable at a glance.
+**TEST:** `npm run typecheck` → ✅
 
-**REPAIR:** Added `forgeState` field to `SCREENS.Settings` in `screens.ts` with current cycle count (`4`) and last hash (`68f27d2`). Updated `SettingsScreen.tsx` to read and display this value.
-
-**TEST:** `npm run typecheck` → ✅ passed.
-
-**VERIFY:** Settings screen now shows live cycle count and hash.
-
-**RESULT:** ✅ **COMMIT** `68f27d2` — 4 kg earned.
+**RESULT:** ✅ COMMIT `a3f9c21` — 8 kg
 
 ---
 
-## Summary
+## Özet
 
-| metric | value |
-|---|---|
-| Total cycles | 4 |
-| Successful commits | 3 |
-| Rollbacks | 1 |
-| Total kg | 4 |
-| Human touch points | 0 |
-| Track | A — Drop-in Discipline |
+| metric | hafta 1-2 | bu hafta | toplam |
+|---|---|---|---|
+| Başarılı commit | 3 | 2 | 5 |
+| Rollback | 1 | 2 | 3 |
+| STUCK | 0 | 1 | 1 |
+| Expert call | 0 | 1 | 1 |
+| kg | 4 | 4 | 8 |
+| Human touch | 0 | 1 | 1 |
+| Track | A | A | A |
