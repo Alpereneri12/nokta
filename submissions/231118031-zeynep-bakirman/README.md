@@ -1,14 +1,18 @@
-# Nokta - Track A Submission
+Track: A (Sadelik)
 
-**Öğrenci:** Zeynep Bakırman (231118031)
-**Seçilen Track:** Track A — Dot Capture & Enrich
+# Nokta Audit-Forge Görevi
 
-## 🔗 Linkler
-- **Expo QR Linki:** [EAS İndirme Sayfası](https://expo.dev/accounts/zeynepbakirman/projects/app/builds/b3bc9060-6889-4c61-8524-ed9f5f021363)
-- **60 Sn Demo Video:** [YouTube Demo İzle](https://youtu.be/oAl6NrlqfjM?si=P95ElvC_hiEpGV0E)
+## Proje Detayları
+* **Öğrenci:** Zeynep Bakırman (231118031)
+* **Expo Link:** [https://expo.dev/accounts/zeynepbakirman/projects/app/builds/ee62cbab-835e-4e7d-be08-4d3b2140b4d2]
+* **Demo Videosu:** [(https://youtube.com/shorts/5cY7-JtuoWA)]
 
-## 🛠 Decision Log (Karar Defteri)
-1. **Framework:** Hızlı geliştirme ve Android/iOS uyumluluğu için React Native ve Expo kullanıldı.
-2. **UI Tasarımı:** Kullanıcının odağını dağıtmamak adına, koyu mor detaylara sahip, backend-driven (AI'dan gelen sorulara göre şekillenen) temiz ve minimal bir form yapısı tercih edildi.
-3. **AI Seçimi:** OpenAI yerine Google Gemini 2.5 Flash API kullanıldı. Sebebi: Rate limitlere daha az takılması ve JSON/Metin ayrıştırmasındaki (prompt engineering) hızı.
-4. **Anti-Slop Önlemi:** AI'a "katı bir sistem mimarı" rolü verilerek jenerik cevaplar engellendi. Gelen spec raporu Markdown formatında (`react-native-markdown-display` kütüphanesi ile) render edilerek kurumsal bir doküman hissiyatı verildi.
+## Kullanılan AI Araçları
+* Forge döngüsü için **Gemini** kullanıldı.
+
+## Karar Günlüğü (Decision Log)
+* **Track A** seçildi çünkü "drop-in" disiplinini korumak ve minimum ek kodla maksimum verim almak hedeflendi.
+* Widget, host uygulamanın sınırlarına (boundary) sadık kalarak, hiçbir native bağımlılığı içeri çekmeden enjekte edildi.
+
+## Human Touch Points
+* Toplam Sayı: 3 (Sadece AI tarafından üretilen düzeltmelerin onaylanması ve review süreçlerinde müdahale edildi).

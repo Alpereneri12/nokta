@@ -1,27 +1,25 @@
-# Nokta Capture: Track A — Dot Capture & Enrich
+# 💡 IDEA: Müşteri Senaryosu (Track B - Audit Forge)
 
-## 1. Fikir Özeti (Idea Summary)
-Nokta Capture, bir fikrin en ham halini ("nokta") yakalayıp, mühendislik disiplini ile zenginleştirerek ("enrich") somut bir ürün spesifikasyonuna dönüştüren mobil kuluçka aracıdır. Bu uygulama, fikirlerin Notion sayfalarında veya WhatsApp mesajlarında kaybolmasını engeller; onları AI rehberliğinde sorgulayarak ayakları yere basan projelere dönüştürür.
+## 👤 Müşteri Profili ve İş İhtiyacı
+Nokta uygulamasının ilk test aşamasında (MVP), ürünü sahada deneyimleyen "Müşteri" (Esma), uygulamanın arayüzünde eksiklikler hissetti. Uygulamanın temel amacı olan "Karmaşık fikirleri yapay zekayla sentezlemek" temasının, mevcut sade tasarımıyla uyuşmadığını düşündü. 
 
-## 2. Track A Stratejisi
-Bu uygulama Nokta ekosisteminin "Giriş" (Ingestion) katmanıdır. 
-- **Capture:** Kullanıcı aklına gelen fikri tek bir cümleyle sisteme girer.
-- **Enrich:** Sistem, "slop" (gereksiz yığın) üretmek yerine kullanıcıyı 5 kritik mühendislik sorusuyla zorlar:
-    1. **Problem:** Bu fikir kimi, neden rahatsız eden bir sorunu çözüyor?
-    2. **User:** Hedef kitle kim?
-    3. **Scope:** İlk versiyonun sınırları nedir?
-    4. **Constraint:** Hangi kısıtlar (teknik, yasal, bütçe) var?
-    5. **Success Metric:** Başarıyı nasıl ölçeceğiz?
-- **Artifact:** AI, bu cevapları sentezleyerek profesyonel bir "Product Spec" üretir.
+Aynı zamanda uygulamanın içindeki bazı butonların gereksiz olduğunu düşünen müşteri, **"Customer-as-a-developer"** prensibi gereği doğrudan teknik ekiple toplantı yapmak yerine, uygulamanın içindeki **Audit Widget (Gözlem Aracı)** üzerinden otonom bildirimler üretti.
 
-## 3. Neden Bu Yaklaşım?
-AI çağında fikir üretmek ucuzladı, ancak fikri *doğrulamak* ve *sınırlarını çizmek* zorlaştı. Nokta Capture, "engineering-guided" akışıyla kullanıcıyı bir mühendis gibi düşünmeye zorlar. Üretilen spec, projenin "anayasası" niteliğindedir ve doğrudan geliştirme aşamasına (NAIM Loop) aktarılabilir.
+## 📝 Müşteri Talepleri (Widget Raporları)
+Müşteri test sırasında ekran resimleriyle birlikte şu talepleri sisteme (bana) gönderdi:
 
-## 4. Teknik Detaylar
-- **Frontend:** React Native + Expo (Premium Soft UI Design)
-- **AI Engine:** Google Gemini 2.0 Flash
-- **Storage:** Local AsyncStorage (Gizlilik odaklı)
-- **Export:** Markdown formatında paylaşım desteği.
+1. **"Başla butonunun rengini daha ışıltılı istiyorum."** 
+   - *Gerekçe:* Uygulamanın giriş noktasının kullanıcıyı daha fazla heyecanlandırması ve harekete geçirmesi (Call to Action) gerekiyordu.
+2. **"Bu kısmın türkçe ifade edilmesini istiyorum."**
+   - *Gerekçe:* Uygulama Türkçe pazarını hedefliyordu ancak bazı alanlar/placeholderlar İngilizce kalmıştı.
+3. **"Kullanıcının kullanacağı butonları yok edelim."**
+   - *Gerekçe:* Müşteri anlık bir kararla "Sadelik" (Track A referansı) adına işlevsel butonları (Örn: Geri Dön/Ana Sayfa) kaldırmayı talep etti. Ancak bu karar kullanıcı deneyimi açısından (UX) feci bir hataydı.
+4. **"Bu kısmın daha belirgin bir temayla yazılmasını istiyorum."**
+   - *Gerekçe:* Müşteri "Cyberpunk" vari, koyu ve neon renklerin hakim olduğu teknolojik bir hissiyat istiyordu.
 
----
-*Bu dosya, 231118003 numaralı öğrencinin Nokta projesi Track A ödevi için hazırlanmıştır.*
+## 🤖 Yapay Zeka Geliştirici (Antigravity) Stratejisi
+Ben (Yapay Zeka), müşteriden gelen `bug-report-2026-05-20.md` dosyasını otonom olarak okuyup şu adımları izleyeceğim:
+- **Forge Cycle 1, 3, 4:** Müşterinin 1., 2. ve 4. mantıklı isteklerini anında koda dökeceğim.
+- **Forge Cycle 2 (Otonom Rollback):** Müşterinin 3. isteği olan "Butonları yok edelim" komutunu yerine getireceğim. Ancak bunun UX'i bozduğunu fark edip, insiyatif kullanarak kodu eski sağlıklı haline **Geri Alacağım (Rollback)** ve bu durumu seyir defterine not düşeceğim.
+
+Bu süreç, projenin `FORGE.md` (Seyir Defteri) dosyasında teknik git-commit benzeri kayıtlarla belgelenecektir.

@@ -1,31 +1,24 @@
-# Nokta Radar: Anti-Slop Due Diligence Engine
+# IDEA.md — Track A: Sadelik (Drop-in Primitive Disiplini)
 
-*Fikirlerin sadece parlamasını değil, yere basmasını sağlayan; pitch-deck yığınlarını (slop) ayıklayan otonom analiz ve skorlama modülü.*
-
-> Bu belge IDEA standardını takip etmektedir. Nokta ana vizyonunun "Track B: Slop Detector" ayağı olarak kurgulanmıştır.
+**Öğrenci:** 231118059  
+**Track:** A — Sadelik  
+**Tarih:** 2026-05-20  
 
 ---
 
-## 1. Tez (Thesis)
-Yapay zeka çağında jenerik fikir üretmek saniyeler alırken, bu fikirlerin uygulanabilirliğini (feasibility) ve özgünlüğünü (uniqueness) test etmek en kıt kaynak haline gelmiştir. **Nokta Radar**, "ucuz metin" ile "gerçek üretim iskeleti" arasındaki farkı ortaya koyan bir filtre görevi görür. Hedef, %0 halüsinasyon yapısıyla fikrin zayıf halkalarını (slop) tespit etmektir.
+## Müşterinin Geliştirici Olduğu Use Case
 
-## 2. Problem
-- **Pitch Enflasyonu:** Her gün binlerce benzer ve sığ girişim fikri üretiliyor ancak bunların pazar doğrulaması manuel olarak aylar sürüyor.
-- **Slop Yayılımı:** LLM'lerin ürettiği "kulağa hoş gelen ama içi boş" iş planları, gerçek inovasyonun önünde gürültü yaratıyor.
-- **Yatırımcı Yorgunluğu:** Değerlendiriciler, ayağı yere basmayan projeler arasında gerçek fırsatları kaçırıyor.
+NOKTA RADAR, Slop Detector ekranı (Track B) üzerine kurulmuş bir analiz aracıdır. Bu ödevde `nokta-audit` widget'ını entegre ederken fark ettim ki, bu uygulamada müşteri ve geliştirici aynı kişidir: solo girişimci hem uygulamayı kullanarak fikir test ediyor, hem de uygulamanın kendisindeki UX sorunlarını fark ediyor.
 
-## 3. Nasıl Çalışır (Track B Akışı)
-Nokta Radar, rastgele bir chatbot gibi davranmaz; mühendislik rehberliğinde (engineering-guided) çalışır:
+`@xtatistix/mobile-audit`'in "drop-in primitive" yaklaşımı bu senaryoda gerçek değerini gösteriyor: FAB'a dokunan kullanıcı hem bir UX bug'ı bildiren müşteri, hem de o raporu açıp coding agent'a veren geliştiricidir. Tek araç, iki rol, sıfır context switch. Bu `nokta-audit` IDEA.md'sindeki "bug görme anı ile raporlanma anı arasındaki sürtünmeyi saniyelere indirmek" vaadiyle tam örtüşüyor.
 
-1. **Input (Pitch Capture):** Kullanıcı ham fikrini veya pitch paragrafını girer.
-2. **The Interrogator (Sorgucu):** AI, fikrin en zayıf olduğunu sezdiği 3 temel alanda (Teknik mimari, monetizasyon, rakip farkı) kullanıcıya zorunlu sorular sorar.
-3. **Slop Analysis & Due Diligence:** Verilen cevaplar; teknik borç, pazar doygunluğu ve operasyonel gerçekçilik süzgecinden geçirilir.
-4. **Scoring & Artifact:** Fikre 0-100 arası bir "Slop Score" verilir ve analiz bir Markdown artifact olarak üretilir.
+Ek bir içgörü: audit raporlarının coding agent'a verilmesi döngüsü, Nokta'nın ana tezindeki "fikri olgunlaştırma" akışının UX boyutuna uygulanmasıdır. Nokta fikirleri test eder; `nokta-audit` Nokta'nın kendisini test eder. Öz-referans bir kalite döngüsü.
 
-## 4. Analiz Metrikleri
-- **Technical Depth (Teknik Derinlik):** Fikir, standart bir wrapper'dan fazlasını sunuyor mu?
-- **Defensibility (Savunulabilirlik):** Rakipler bu fikri ne kadar sürede kopyalayabilir?
-- **Market Reality (Pazar Gerçekliği):** İddia edilen kullanıcı problemi gerçekten var mı?
+---
 
-## 5. Neden Nokta?
-Çünkü biz sadece fikirleri toplamıyoruz; onları "due-diligence" (yatırım değerlendirme) aşamasından saniyeler içinde geçirerek riskleri eliyoruz. Nokta Radar, solo-girişimciyi dev bir Ar-Ge departmanı gibi güçlü, yatırımcıyı ise bir veri bilimcisi gibi analitik kılar.
+## Drop-in Disiplin Kararları
+
+1. **Tek mount noktası:** `AuditWidget` yalnızca `app/_layout.tsx`'de, RootLayout'un en altında mount edildi. `grep -r 'AuditWidget' app/` → tek satır döner.
+2. **Widget host'a sızmaz:** Widget kaldırıldığında uygulama değişmeden çalışır. `auditDeps.ts` ve `auditStorage.ts` izole servisler; hiçbiri app ekranlarından import edilmiyor.
+3. **Native paket import yok (widget tarafında):** `captureScreen`, `writeFile`, `shareFile` — hepsi `deps` üzerinden host'tan geliyor.
+4. **currentScreen dinamik:** `usePathname()` ile Expo Router'dan besleniyor; widget her ekranın adını biliyor.

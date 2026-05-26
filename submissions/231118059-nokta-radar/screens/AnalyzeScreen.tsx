@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     fontSize: 16,
     padding: 20,
-    minHeight: 180,
+    minHeight: 220,
     marginBottom: 20,
   },
   actionButton: {

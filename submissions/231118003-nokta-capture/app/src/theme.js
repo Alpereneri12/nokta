@@ -1,7 +1,7 @@
 export const COLORS = {
-  bg: "#0A0A18",
-  mint: "#B5FFD9",
-  pink: "#FFB5D9",
+  bg: "#050510",
+  mint: "#00FFE5",
+  pink: "#FF007F",
   textPrimary: "#FFFFFF",
   textSecondary: "#E0E0E0",
   textMuted: "#A0A0A0"

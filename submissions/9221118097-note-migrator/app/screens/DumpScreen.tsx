@@ -5,18 +5,19 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as Clipboard from 'expo-clipboard';
 import { analyzeNotes, IdeaCard } from '../services/claudeApi';
 import { RootStackParamList } from '../App';
+import NoktaMascot, { MascotEmotion } from '../components/NoktaMascot';
 
 type Props = {
-  navigation: NativeStackNavigationProp<RootStackParamList, 'Dump'>;
+  navigation: NativeStackNavigationProp<RootStackParamList>;
 };
 
 const PLACEHOLDER = `--- English ---
@@ -37,6 +38,16 @@ Ali: [iletildi] son dakika çalışma ipuçları`;
 export default function DumpScreen({ navigation }: Props) {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mascotEmotion, setMascotEmotion] = useState<MascotEmotion>('idle');
+
+  async function handlePasteClipboard() {
+    const content = await Clipboard.getStringAsync();
+    if (!content.trim()) {
+      Alert.alert('Clipboard empty', 'Nothing found on the clipboard.');
+      return;
+    }
+    setText(prev => prev ? prev + '\n' + content : content);
+  }
 
   async function handleAnalyze() {
     if (!text.trim()) {
@@ -44,10 +55,13 @@ export default function DumpScreen({ navigation }: Props) {
       return;
     }
     setLoading(true);
+    setMascotEmotion('thinking');
     try {
       const cards: IdeaCard[] = await analyzeNotes(text);
-      navigation.navigate('Cards', { cards });
+      setMascotEmotion('done');
+      setTimeout(() => navigation.navigate('Review', { cards }), 800);
     } catch (e: any) {
+      setMascotEmotion('error');
       Alert.alert('Error', e.message ?? 'Something went wrong.');
     } finally {
       setLoading(false);
@@ -78,6 +92,12 @@ export default function DumpScreen({ navigation }: Props) {
           {' (or mixed).'}
         </Text>
 
+        <NoktaMascot emotion={mascotEmotion} />
+
+        <TouchableOpacity style={styles.clipboardBtn} onPress={handlePasteClipboard}>
+          <Text style={styles.clipboardBtnText}>📋 Paste from Clipboard</Text>
+        </TouchableOpacity>
+
         <TextInput
           style={styles.input}
           multiline
@@ -93,21 +113,10 @@ export default function DumpScreen({ navigation }: Props) {
           onPress={handleAnalyze}
           disabled={loading}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.btnText}>✨ Analyze & Extract Ideas</Text>
-          )}
-        </TouchableOpacity>
-
-        {loading && (
-          <Text style={styles.loadingHint}>
-            AI is reading your chaos... hang tight 🤖{'\n'}
-            <Text style={styles.loadingHintSmall}>
-              Yapay zeka mesajlarınızı analiz ediyor • AI sedang menganalisis mesej anda
-            </Text>
+          <Text style={styles.btnText}>
+            {loading ? 'Analyzing…' : '✨ Analyze & Extract Ideas'}
           </Text>
-        )}
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -148,6 +157,23 @@ const styles = StyleSheet.create({
   sub: { color: '#888', fontSize: 13, marginBottom: 16, lineHeight: 20 },
   langTag: { color: '#6c47ff', fontWeight: '600' },
 
+  clipboardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#1a1a24',
+    borderWidth: 1,
+    borderColor: '#2a2a38',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 10,
+  },
+  clipboardBtnText: {
+    color: '#6c47ff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   input: {
     backgroundColor: '#1a1a24',
     color: '#e0e0e0',
@@ -168,12 +194,4 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  loadingHint: {
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 16,
-    fontSize: 13,
-    lineHeight: 20,
-  },
-  loadingHintSmall: { fontSize: 11, color: '#444' },
 });

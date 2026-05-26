@@ -1,9 +1,9 @@
 # NOKTA - AI Destekli Not Derleyici ve Fikir Kartları
 
-**Seçilen Track:** 3 (Not dökümünden idea card'lara ayırma)
+**Seçilen Track:** Track C (Not dökümünden idea card'lara ayırma)
 
 ## Proje Bağlantıları
-- **Expo Linki:** [https://youtube.com/shorts/JGGdZsjDPfs](https://youtube.com/shorts/JGGdZsjDPfs)
+- **Expo Linki:** [https://expo.dev/@ali8183/nokta](https://expo.dev/@ali8183/nokta)
 - **60 Saniyelik Demo Video Linki:** [https://youtube.com/shorts/JGGdZsjDPfs](https://youtube.com/shorts/JGGdZsjDPfs)
 
 ---
@@ -23,3 +23,11 @@ Uygulamanın arayüzü, "Bilişsel Yükü Azaltma" prensibiyle yeniden tasarlanm
 
 ### 4. Native 'Share' API Entegrasyonu
 Üretilen fikirlerin ekosistem dışına hızlıca aktarılabilmesi için işletim sisteminin native **Paylaş (Share) API**'si entegre edildi. Bu sayede kullanıcılar, AI tarafından rafine edilen notlarını tek bir dokunuşla profesyonel bir formatta diğer platformlara (mesajlaşma uygulamaları, e-posta, not tutma araçları) aktarabilmektedir.
+
+### 5. Nokta Audit Widget Entegrasyonu
+Ödevin ikinci aşaması olarak, uygulamanın test edilebilirliğini ve arayüz denetim kalitesini artırmak amacıyla **Nokta-Audit** modülü sisteme entegre edilmiştir:
+- **Modüler Bağımlılık Enjeksiyonu (DI):** Widget'ın platform bağımsız çalışabilmesi için `captureScreen`, `captureRef`, `FileSystem` (expo-file-system legacy API), `Sharing` ve `AsyncStorage` gibi native yetenekler dependency injection (DI) yöntemiyle root `_layout.tsx` seviyesinde enjekte edilmiştir.
+- **Audit Storage Katmanı:** AsyncStorage tabanlı `auditStorage` adaptörü geliştirilerek, kullanıcıların aldığı denetim notlarının yerel cihaz hafızasında güvenli ve kalıcı bir şekilde saklanması sağlanmıştır.
+- **Gelişmiş Arayüz İşaretleme (Highlighter):** Kullanıcıların ekran üzerindeki arayüz hatalarını veya eksikliklerini sürükleyip sarı bir seçim kutusuyla (sarı highlighter) görsel olarak işaretleyebilmesi ve bu seçimin ekran görüntüsüyle birleştirilerek kaydedilmesi sağlanmıştır.
+- **Çoklu Dışa Aktarım (Word & Markdown):** Toplanan denetim bulgularının akademik rapor formatında Word (`.docx`) veya Markdown (`.md`) olarak dışa aktarılabilmesi ve işletim sistemi paylaşım menüsü üzerinden kolayca paylaşılarak raporlanabilmesi sağlanmıştır.
+

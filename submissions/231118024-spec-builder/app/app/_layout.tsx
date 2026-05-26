@@ -9,6 +9,15 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 
+// Nokta Audit Dependencies
+import { AuditWidget } from '@xtatistix/mobile-audit';
+import { auditStorage } from '@/utils/auditStorage';
+import * as FileSystem from 'expo-file-system/src/legacy';
+import * as Sharing from 'expo-sharing';
+import { captureScreen, captureRef } from 'react-native-view-shot';
+import { usePathname } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
@@ -48,6 +57,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const pathname = usePathname();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -78,6 +88,54 @@ function RootLayoutNav() {
         />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
+
+      <AuditWidget
+        appName="SpecBuilder"
+        deps={{
+          captureScreen,
+          captureRef,
+          currentScreen: pathname,
+          storage: auditStorage,
+          reporterId: 'müşteri-qa',
+          BugIcon: <Ionicons name="bug" size={24} color="#fff" />,
+          writeFile: async (filename, content) => {
+            try {
+              const fullPath = (FileSystem.documentDirectory || '') + filename;
+              console.log('[Audit] Writing file (legacy) to:', fullPath);
+              await FileSystem.writeAsStringAsync(fullPath, content);
+              return fullPath;
+            } catch (err) {
+              console.error('[Audit] writeFile failed:', err);
+              throw err;
+            }
+          },
+          writeFileBinary: async (filename, base64) => {
+            try {
+              const fullPath = (FileSystem.documentDirectory || '') + filename;
+              console.log('[Audit] Writing binary (legacy) to:', fullPath);
+              await FileSystem.writeAsStringAsync(fullPath, base64, {
+                encoding: FileSystem.EncodingType.Base64,
+              });
+              return fullPath;
+            } catch (err) {
+              console.error('[Audit] writeFileBinary failed:', err);
+              throw err;
+            }
+          },
+          shareFile: async (path) => {
+            try {
+              console.log('[Audit] Sharing file at:', path);
+              if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(path);
+              } else {
+                console.warn('[Audit] Sharing is not available on this platform');
+              }
+            } catch (err) {
+              console.error('[Audit] Sharing failed:', err);
+            }
+          },
+        }}
+      />
     </ThemeProvider>
   );
 }

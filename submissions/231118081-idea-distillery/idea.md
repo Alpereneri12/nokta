@@ -1,74 +1,83 @@
-# Nokta Draft: From Raw Note Chaos to a Decision-Ready Project Concept
+# Nokta Game Pitch: Customer-Developer Forge Loop
 
 ## Selected Track
 
-**Track C — Migration & Dedup**
+**Track C - Otonomi / ratchet discipline**
 
-Nokta Draft is a Track C product that starts from messy project notes, deduplicates them into clean idea units, and turns them into a stronger final artifact: a **decision-ready project concept draft**.
+## Thesis
 
-The important point is that the app does not stop at “idea cards.”  
-Idea cards are part of the internal distillation process.  
-The user-facing value is a clearer concept draft that is easier to judge, refine, and continue.
+Nokta Game Pitch is still an indie game brief tool, but the new assignment
+changes the role of the user. Before, the user pasted notes and received a
+brief. Now the user also becomes part of development: they can capture a screen,
+mark a problem or feature opportunity, write a short note, and turn that into an
+agent-readable markdown repair input.
 
----
+The goal is not to let the user write TypeScript. The goal is to let the user
+change the product by producing better evidence. A marked screenshot plus a
+short note is stronger than a vague request, so Codex can run a smaller,
+testable repair cycle.
 
-## Core Thesis
-
-Early project thinking is rarely born in a clean form.
-
-It usually exists as a pile of rough fragments:
-
-- copied AI chat messages
-- half-written bullet lists
-- repeated feature thoughts
-- vague scope notes
-- technical constraints mixed with product ideas
-- old and new decisions living in the same text
-- unresolved contradictions
-
-The problem is not only messiness.
-
-The deeper problem is that this material does not yet function as a usable project artifact. It may contain good thinking, but it is not clear enough to evaluate, not stable enough to continue from, and not structured enough to hand to the next stage of work.
-
-Nokta Draft solves this by taking raw project fragments and distilling them into a clearer planning document.
-
-Its central promise is:
-
-> **raw planning notes become a structured, decision-ready project concept draft**
-
-This makes Nokta Draft more than a summarizer, more than a formatter, and more than a card generator. It is a concept distillation tool.
-
----
-
-## Problem
-
-People often think they understand their project because they have a lot of notes about it.
-
-In reality, those notes are often too chaotic to function as real project understanding.
-
-Typical failure modes include:
-
-- the same idea appears many times in different wording
-- important features are mixed with optional future ideas
-- constraints are buried inside random text
-- contradictory directions survive side by side
-- the project sounds clear in the user’s head but weak on the page
-- the user cannot tell what is defined and what is still vague
-- the user has enough text, but not enough structure
-
-This creates a specific planning gap:
-
-the project exists as **raw thinking**, but not yet as a **usable concept**.
-
-That gap is where Nokta Draft operates.
-
----
-
-## Product Idea
-
-Nokta Draft is built around one transformation:
+## Core Loop
 
 ```txt
-raw project fragments
-→ deduplicated idea units
-→ structured concept draft
+messy game notes
+-> GDD-lite brief
+-> user decisions
+-> saved brief
+-> mentor ticket when needed
+-> feedback writeback
+-> audit report if the flow needs improvement
+-> Codex repair
+-> EVAL ratchet
+```
+
+## Why This Fits Game Pitch
+
+Indie game ideas are full of uncertain decisions: scope, platform, combat,
+multiplayer, timebox, mentor review. Those decisions are exactly where users
+notice product gaps. The audit widget lets the user point at the specific screen
+where the gap appears.
+
+Examples:
+
+- a saved brief status does not explain the next action
+- feature creep warnings are passive instead of decision-oriented
+- mentor tickets lack the user's selected decisions
+- a shortcut request looks useful but breaks the data lifecycle
+
+Each report becomes one bounded forge cycle.
+
+## What The App Produces
+
+- Game Summary
+- Core Loop
+- Player Fantasy
+- Core Mechanics
+- Scope Boundary
+- Feature Creep Warnings
+- Prototype Plan
+- Mentor Handoff Packet
+- Saved Brief
+- Mentor Feedback Writeback
+- Audit Markdown Report
+
+## Audit-Forge Rule
+
+Every accepted change must be small enough to explain in `FORGE.md` and stable
+enough to protect in `EVAL.md`.
+
+```txt
+READ -> LOCATE -> HYPOTHESIZE -> REPAIR -> TEST -> VERIFY -> COMMIT/ROLLBACK
+```
+
+Rollback is part of the product. If a customer request breaks the brief lifecycle
+or creates context-free mentor work, it should be rejected and logged instead of
+quietly implemented.
+
+## What It Does Not Do
+
+- It does not add a backend.
+- It does not make the mentor queue a real video call.
+- It does not add the Codex notebook as a runtime dependency.
+- It does not create mentor tickets without a saved brief.
+- It does not let feature creep survive without a decision.

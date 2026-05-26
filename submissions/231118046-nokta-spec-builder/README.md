@@ -1,52 +1,82 @@
-# NOKTA Spec Builder
+## Audit Forge Submission — 231118046
 
-## Project Details
-- **Student Number:** 231118046
-- **Track Selection:** Track A (Idea → Clarifying Questions → One-Page Spec)
+This submission implements the **Audit Forge assignment (Track C — Autonomy)** using the Nokta ecosystem.
 
-## Overview
-NOKTA Spec Builder is a minimalistic, polished mobile application developed to help entrepreneurs, developers, and product managers convert raw ideas into structured specifications. By simulating an AI-assisted workflow, the app forces the user to clarify constraints upfront and automatically compiles the input into a clean, ready-to-use One-Page Product Spec.
+### ✅ Overview
 
-## How It Works
-The application uses a linear, state-driven user flow:
-1. **Idea Pitch:** The user enters their raw startup or product idea into a text field.
-2. **Clarification Phase:** The user answers four hardcoded, constraint-focused product questions:
-   - What specific problem does this solve?
-   - Who is the exact target user?
-   - What is the absolute minimum feature set?
-   - What is the biggest constraint or risk?
-3. **Spec Generation:** The app processes the answers and displays a beautifully formatted, single-page specification document summarizing the project.
+* Integrated the `nokta-audit` widget as a local drop-in component
+* Built a minimal Expo + TypeScript application with 3 screens
+* Injected intentional UI bugs for testing the audit system
+* Generated structured markdown bug reports
+* Simulated an autonomous repair loop (Forge Loop)
 
-## Tech Stack
-- **Framework:** Expo + React Native (Plain JavaScript)
-- **Styling:** React Native `StyleSheet`
-- **Architecture:** Single-file state machine (`App.js`)
+---
 
-## Running Locally
-To test the MVP on a local machine, simply run:
-```bash
-cd app
-npm install
-npx expo start
+### 🔁 Forge Loop Execution
+
+Implemented full cycle:
+
+READ → LOCATE → HYPOTHESIZE → REPAIR → TEST → VERIFY → COMMIT / ROLLBACK
+
+* 3 successful repair cycles
+* 1 failed cycle with proper rollback
+* All cycles documented in `FORGE.md`
+
+---
+
+### 🤖 Autonomy (Track C)
+
+* Defined clear **agent vs human responsibilities**
+* Implemented **decision boundaries**
+* Applied **rollback-based failure handling**
+* Designed a **ratchet mechanism** to prevent regression
+
+Details available in `IDEA.md`.
+
+---
+
+### 🐞 Reports
+
+Generated structured bug reports:
+
+* `report-01-home.md`
+* `report-02-profile.md`
+* `report-03-settings.md`
+
+Each report includes:
+
+* Description
+* Steps to reproduce
+* Expected vs Actual
+* Root Cause
+* Suggested Fix
+
+---
+
+### 📁 Structure
+
 ```
-*(Press `a` to open in the Android emulator, `i` to open in the iOS simulator, or scan the QR code with the Expo Go app).*
-
-## APK Build Instructions (EAS)
-This project is configured to easily build an Android APK via Expo Application Services. Run the following command in the `app/` directory:
-```bash
-eas build -p android --profile preview
+submissions/231118046-nokta-spec-builder/
 ```
 
-## Demo & Submission Links
-- **Demo Video:** https://youtube.com/shorts/_T-CS_F6lmM
-- **Expo / APK Link:** https://expo.dev/accounts/ravzanurr/projects/app/builds/9dddb181-4263-4bad-a1c0-c3e968e2acc2
+Includes:
 
-## Decision Log
-1. **Plain JavaScript over TypeScript:** I chose JS to keep the MVP extremely lightweight and fast to develop, as the data structures are isolated to just three basic local states.
-2. **Skipped React Navigation:** I utilized a single integer-based state (`step`) to conditionally render different views inside `App.js`. This eliminated navigation boilerplate and guaranteed a completely crash-free linear flow.
-3. **Hardcoding Questions vs. AI:** I opted to hardcode the four clarifying questions. This guarantees perfect stability during the 60-second submission demo and avoids unpredictable API latencies, while perfectly satisfying the Track A logic.
-4. **Native StyleSheet over Tailwind:** Choosing pure `StyleSheet` styling removed external dependencies and ensured out-of-the-box compatibility across both web and native devices without extra compilation times.
-5. **Combined Form State Structure:** All answers are housed within a single state object (`answers`). This decision makes future refactoring to a real AI backend seamless, as the object can simply be serialized and sent as a single payload.
+* Expo app (`app/`)
+* Reports (`reports/`)
+* Forge logs (`FORGE.md`)
+* Autonomy design (`IDEA.md`)
+* Documentation (`README.md`)
 
-## Summary
-This project delivers exactly on the Track A objective: it takes a messy idea, applies constraints through targeted questioning, and automatically generates a highly readable product specification document.
+---
+
+### 🧠 Notes
+
+* All work was done locally without external dependencies for the audit widget
+* The system prioritizes **safe autonomy and controlled changes**
+* The application builds and runs successfully
+
+---
+
+### ✅ Status
+
+Ready for review.

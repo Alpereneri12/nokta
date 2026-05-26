@@ -1,36 +1,179 @@
-# Nokta Draft
+Track: C
 
-## Seçilen Track
+# Nokta Game Pitch Audit-Forge
 
-**Track C - Migration & Dedup**
+## Submission
 
-## Kısa Açıklama
+- **Ogrenci no:** 231118081
+- **Slug:** idea-distillery
+- **Track:** C - Otonomi / ratchet discipline
 
-Nokta Draft, dağınık proje notlarını daha net ve karar vermeye uygun bir proje konsepti taslağına dönüştüren odaklı bir mobil uygulamadır. Uygulamanın ana değeri genel bir özet çıkarma yapmak ya da kullanıcıya kart yığını göstermek değildir. Uygulama, tekrar eden noktaları birleştirmek, çelişkileri görünür kılmak, tanımsız alanları ortaya çıkarmak ve sonucu daha güçlü bir çıktıya dönüştürmek için deterministik bir yerel motor kullanır.
+## Goal
 
-## Uygulama Ne Yapar
+This submission turns the old Nokta Game Pitch app into an Audit-Forge host.
+The user is no longer only someone who asks a developer for changes. The user
+becomes a customer-developer: they capture the screen, mark the problem, write a
+short note, and produce a markdown report that Codex can repair against.
 
-- Kopyalanmış sohbetlerden, madde listelerinden veya karışık planlama metinlerinden ham not dökümü alır.
-- Bu dökümü küçük parçalara ayırır ve tekrar eden ifadeleri normalize eder.
-- Belirgin tekrarları ve örtüşmeleri iç fikir birimlerine indirger.
-- Aşağıdaki bölümlerden oluşan yapılandırılmış bir `Distilled Project Concept Draft` üretir:
-  - Concept Summary
-  - Problem and Intent
-  - Core Product Direction
-  - Key Features
-  - Constraints and Boundaries
-  - Contradictions and Tensions
-  - Undefined Areas
-  - Recommended Next Decisions
-- Sonuç ekranı içinde hafif gözden geçirme / iyileştirme etkileşimleri sunar:
-  - Sharpen Summary
-  - Tighten Scope
-  - Mark Decision
-- Ek bonus yetenek içerir: kritik seçimler onaylandıktan sonra konsepti daha net bir v1 çıktısına sıkılaştıran karar-kilitli bir handoff özeti üretir.
+The app theme stays specific: solo indie game developers paste messy game notes
+and receive a scoped GDD-lite brief with mentor review when needed.
 
-## Nasıl Çalıştırılır
+## Customer-Developer Loop
 
-Repo kök dizininden:
+```txt
+User sees a problem or feature opportunity
+-> Audit widget captures the screen and note
+-> Markdown report becomes forge input
+-> Codex reads, locates, repairs, tests, and verifies
+-> The accepted behavior is added to EVAL.md as a ratchet
+```
+
+Optional automation layer:
+
+```txt
+Audit widget exports markdown
+-> local forge server receives it
+-> Ollama proposes a bounded patch
+-> server typechecks
+-> Git commit or rollback is logged
+```
+
+The Codex iterative repair notebook was used only as methodology. I did not add
+the notebook, Python runner, or heavy automation files to this submission. The
+notebook's `Review -> Repair -> Validate` loop maps to this app as
+`Audit report -> Codex repair -> Typecheck/manual verify -> FORGE.md`.
+
+## What The App Does
+
+- User and Mentor enter through separate role screens.
+- User pastes game notes and distills them into a GDD-lite brief.
+- Groq can produce structured analysis when `EXPO_PUBLIC_GROQ_API_KEY` exists.
+- If Groq is missing or fails, the deterministic local distiller still works.
+- User selects game decisions before saving.
+- HOTL/HITL briefs create mentor review tickets.
+- Mentor sees only pending tickets.
+- Mentor feedback writes back into the saved brief as future plan.
+- Audit FAB is mounted as a drop-in widget and can export markdown reports.
+- If `EXPO_PUBLIC_FORGE_ENDPOINT` is set, markdown reports are also sent to a
+  local forge server for autonomous repair.
+
+## Audit Integration
+
+Package:
+
+```txt
+@xtatistix/mobile-audit
+```
+
+Host boundary:
+
+- `captureScreen` and `captureRef` come from `react-native-view-shot`.
+- file writing comes from `expo-file-system`.
+- sharing comes from `expo-sharing`.
+- audit note storage comes from `AsyncStorage`.
+- the widget receives dynamic `currentScreen` from app state.
+
+The widget is mounted in `app/App.tsx`. Native packages stay in the host adapter
+under `app/src/audit/`, not inside the widget package.
+
+## Optional Local Forge Server
+
+The extra autonomy layer lives in:
+
+`tools/forge-server.mjs`
+
+It listens for `POST /audit`, sends the report to a local Ollama model, accepts
+only bounded JSON patch output, runs `npm run typecheck`, and commits or logs a
+rollback. Full instructions are in `FORGE_AUTOMATION.md`.
+
+Example:
+
+```powershell
+cd submissions/231118081-idea-distillery
+$env:OLLAMA_MODEL="your-installed-model"
+node tools/forge-server.mjs
+```
+
+Then set `app/.env`:
+
+```env
+EXPO_PUBLIC_FORGE_ENDPOINT=http://10.0.2.2:8787/audit
+```
+
+Use `localhost` for web/iOS simulator and the computer LAN IP for a physical
+phone.
+
+## Audit Reports
+
+Committed reports:
+
+- `audit-reports/report-01-user-workspace-status.md`
+- `audit-reports/report-02-new-brief-creep-actions.md`
+- `audit-reports/report-03-mentor-decision-context.md`
+- `audit-reports/report-04-rollback-home-ticket.md`
+
+The first three reports produced accepted repairs. The fourth is the rollback:
+creating mentor tickets directly from Home was rejected because a valid ticket
+needs a saved brief, readiness review, mentor packet, and user decisions.
+
+## Forge Summary
+
+Full ledger: `FORGE.md`
+
+| Cycle | Result | Commit |
+|---|---|---|
+| Audit mount | success | `e945e9b` |
+| User workspace status actions | success | `ceb23fb` |
+| Feature creep action labels | success | `9521a0c` |
+| Mentor user decision context | success | `7804aad` |
+| Direct Home mentor ticket | rollback | no retained commit |
+
+Accepted kg ratchet:
+
+```txt
+2kg -> 5kg -> 9kg
+```
+
+Rollback keeps the cumulative kg at `9kg`.
+
+## Human Touch Points
+
+Total human touch points: **4**.
+
+- One customer note per audit report.
+- No extra human correction was needed during the three accepted repairs.
+- The rollback was stopped at hypothesis/verification before retained code.
+
+## EVAL Ratchet
+
+`EVAL.md` contains the Track C golden scenarios:
+
+- saved brief status must be actionable
+- feature creep warnings must become decisions
+- mentor must see locked user decisions
+- Home must not create context-free mentor tickets
+
+## Groq Setup
+
+From repo root:
+
+```bash
+cd submissions/231118081-idea-distillery/app
+copy .env.example .env
+```
+
+`.env`:
+
+```env
+EXPO_PUBLIC_GROQ_API_KEY=your_groq_key
+EXPO_PUBLIC_GROQ_MODEL=llama-3.3-70b-versatile
+EXPO_PUBLIC_FORGE_ENDPOINT=
+```
+
+Groq is optional. The forge endpoint is also optional. The app works with local
+fallback when no key or server endpoint is present.
+
+## Run
 
 ```bash
 cd submissions/231118081-idea-distillery/app
@@ -38,53 +181,85 @@ npm install
 npm run start
 ```
 
-Geliştirme sırasında kullanılan ek kontroller:
+Verification:
 
 ```bash
 npm run typecheck
-npx expo export --platform web
+npx expo install --check
 ```
 
-## Expo Linki
+## Demo Flow
 
-Expo Go canlı önizleme / QR linki: `exp://192.168.1.3:8081`
+1. Open **User Login**.
+2. Select **Add Notes / Idea**.
+3. Load sample game notes.
+4. Distill the game pitch.
+5. Select game decisions.
+6. Save the brief and create a mentor ticket when readiness requires it.
+7. Open **Mentor Login**.
+8. Review the pending ticket, including locked user decisions.
+9. Paste mentor feedback.
+10. Resolve the ticket and return to the user workspace.
+11. Open the reviewed saved brief and inspect the future plan.
+12. Use the audit FAB to capture any screen and export a markdown report.
 
-Expo proje sayfası: https://expo.dev/accounts/samsun081/projects/nokta-draft-231118081
+## Expo QR Link
 
-## 60 Saniyelik Demo
+Expo project / QR page:
+https://expo.dev/accounts/samsun081/projects/nokta-draft-231118081
 
-[Youtube Demo](https://youtube.com/shorts/fzQz6UR1TDY?feature=share)
+The Expo slug stays `nokta-draft-231118081` to keep the existing EAS project id.
+The visible app name is **Nokta Game Pitch**.
+
+Latest Android EAS build:
+https://expo.dev/accounts/samsun081/projects/nokta-draft-231118081/builds/81d8c52a-f728-41b2-a2d8-9cf7027e4558
+
+Latest APK artifact:
+https://expo.dev/artifacts/eas/h2YtVctehFqg89a4Bzcbeo.apk
+
+## 60 Second Demo
+
+Demo video link:
+https://youtube.com/shorts/SQF166ex9W8?feature=share
 
 ## APK
 
-APK indirme bağlantısı: https://expo.dev/artifacts/eas/e2F7ST1x4DDZPFjYmZGuF.apk
+APK file in submission:
 
-Yerel dosya: `submissions/231118081-idea-distillery/app-release.apk`
+`submissions/231118081-idea-distillery/app-release.apk`
 
-## Karar Günlüğü
+This APK was rebuilt on 2026-05-19 after adding the audit native dependencies.
 
-- Sadece Track C seçildi ve ürün tek bir dönüşüm akışı içinde tutuldu: ham notlar -> tekrarları ayıklanmış fikir birimleri -> yapılandırılmış konsept taslağı.
-- Son taslak ana kullanıcı çıktısı olarak ele alındı; fikir birimleri ise iç yapıda veya sınırlı görünürlükte bırakıldı.
-- İlk sürüm, canlı bir AI bağımlılığı olmadan çevrimdışı çalışabilsin diye deterministik ve kural tabanlı bir motorla geliştirildi.
-- Arayüz iki ana ekranla sınırlı tutuldu: Input ve Result.
-- İyileştirme akışı ayrı bir ürün dalına taşınmadan sonuç ekranı içinde hafif tutuldu.
-- Stitch ile üretilen tasarım yönü görsel kaynak olarak kullanıldı: editoryal tipografi, kontrollü yüzeyler, güçlü boşluk kullanımı ve çelişki / belirsizlik alanlarında sıcak vurgu tonları.
-- Kilitlenmiş fikir yönünün dışında ama Nokta tezine hizmet eden bonus bir demo yeteneği eklendi: alınan kararlar, daha net bir v1 yönü için handoff özeti ve değişiklik günlüğü üretir.
+## Decision Log
 
-## AI Araç Günlüğü
+- Kept Track C because the assignment rewards autonomy, ratchet logs, and low
+  human touch points.
+- Reused the existing Game Pitch app instead of creating a new minimal app.
+- Mounted `nokta-audit` as a drop-in widget through a host adapter.
+- Did not import native modules from the widget package.
+- Used the Codex repair notebook only as methodology, not as repo artifact.
+- Added audit reports as the input surface for forge cycles.
+- Added an optional Ollama-powered local forge server so new audit markdown can
+  trigger a guarded repair loop.
+- Accepted three small user-facing repairs.
+- Rejected direct Home mentor ticket creation because it breaks the saved brief
+  lifecycle.
+- Added `EVAL.md` so future cycles cannot regress accepted behavior.
 
-- **Codex**: repository incelemesi yaptı, Expo uygulamasını geliştirdi, deterministik motoru kurdu, React Native arayüzünü bağladı ve bu README dosyasını güncelledi.
-- **Stitch**: son arayüz hiyerarşisini ve görsel stilini yönlendiren input ve result ekranı tasarım yönünü üretti.
-- **GPT-5.4 UI/UX subagent**: brief’i iki ekranlı mobil UX planına ve kapsam disiplini kurallarına dönüştürdü.
-- **GPT-5.4 architecture subagent**: uygulama yapısını gözden geçirdi ve v1 için küçük Expo + TypeScript yapısını doğruladı.
-- **GPT-5.4 distillation-logic subagent**: kural tabanlı akışı ve çelişki / belirsizlik sezgilerini önerdi.
-- **GPT-5.4 README subagent**: submission README yapısını ve zorunlu bölümleri gözden geçirdi.
+## AI Tool Log
 
-## Bilinen Sınırlamalar
+- Codex: read active mission, inspected the existing app, integrated audit host
+  deps, ran forge repair cycles, updated README/FORGE/EVAL, and ran typecheck.
+- Ollama: optional local model endpoint for the autonomous forge server; no
+  shared chat history is required or stored by the app.
+- Groq API: optional runtime analyst for game pitch distillation; local fallback
+  is used when no API key is configured.
 
-- Motor deterministik sezgiler kullandığı için yakın tekrar tespiti bilinçli olarak basit tutuldu; embedding tabanlı değil.
-- Uygulama şu anda durumu yalnızca bellekte tutuyor. Yerel kayıt, export veya paylaşım akışı henüz yok.
-- Çelişkiler açık kural çiftleri üzerinden tespit edildiği için daha ince çatışmalar gözden kaçabilir.
-- Başlık üretimi sezgisel olduğu için zayıf girdilerde daha genel kalabilir.
-- Karar-kilitli özet yalnızca yerel sentezdir; henüz kalıcı bir handoff çıktısı olarak export edilmez veya kaydedilmez.
-- Expo proje linki, demo linki ve APK bağlantısı eklendi; ancak Expo Go için ayrı bir canlı preview linki paylaşılmamıştır.
+## Known Limits
+
+- Audit exports are local files shared from the device; there is no backend.
+- The local forge server is a developer-machine automation tool, not a hosted
+  production backend.
+- Mentor connection is an in-app review queue, not a real video call.
+- The EAS build was run from an app-only temporary copy so the monorepo's other
+  submission folders were not uploaded into the build archive.

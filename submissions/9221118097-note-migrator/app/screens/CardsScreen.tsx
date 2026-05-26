@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Share,
+  ScrollView,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
@@ -87,8 +88,24 @@ function CardItem({ card }: { card: IdeaCard }) {
   );
 }
 
+type FilterCategory = 'all' | IdeaCard['category'];
+
+const FILTER_OPTIONS: { key: FilterCategory; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'recipe', label: '🍳' },
+  { key: 'study', label: '📚' },
+  { key: 'reminder', label: '⏰' },
+  { key: 'tip', label: '💡' },
+  { key: 'other', label: '📌' },
+];
+
 export default function CardsScreen({ navigation, route }: Props) {
   const { cards } = route.params;
+  const [activeFilter, setActiveFilter] = useState<FilterCategory>('all');
+
+  const filtered = activeFilter === 'all'
+    ? cards
+    : cards.filter(c => c.category === activeFilter);
 
   return (
     <View style={styles.container}>
@@ -96,15 +113,44 @@ export default function CardsScreen({ navigation, route }: Props) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{cards.length} Ideas Extracted</Text>
+        <Text style={styles.headerTitle}>{filtered.length} / {cards.length} Ideas</Text>
       </View>
 
+      {/* Category filter bar */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterBar}
+        contentContainerStyle={styles.filterBarContent}
+      >
+        {FILTER_OPTIONS.map(opt => (
+          <TouchableOpacity
+            key={opt.key}
+            style={[
+              styles.filterChip,
+              activeFilter === opt.key && styles.filterChipActive,
+            ]}
+            onPress={() => setActiveFilter(opt.key)}
+          >
+            <Text style={[
+              styles.filterChipText,
+              activeFilter === opt.key && styles.filterChipTextActive,
+            ]}>
+              {opt.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
       <FlatList
-        data={cards}
+        data={filtered}
         keyExtractor={item => item.id}
         renderItem={({ item }) => <CardItem card={item} />}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No cards in this category.</Text>
+        }
       />
     </View>
   );
@@ -123,6 +169,43 @@ const styles = StyleSheet.create({
   backBtn: { marginRight: 12 },
   backText: { color: '#6c47ff', fontSize: 15 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  filterBar: {
+    flexGrow: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e1e2e',
+  },
+  filterBarContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 8,
+    flexDirection: 'row',
+  },
+  filterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: '#1a1a24',
+    borderWidth: 1,
+    borderColor: '#2a2a38',
+  },
+  filterChipActive: {
+    backgroundColor: '#1e1530',
+    borderColor: '#6c47ff',
+  },
+  filterChipText: {
+    color: '#666',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  filterChipTextActive: {
+    color: '#6c47ff',
+  },
+  emptyText: {
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 40,
+    fontSize: 14,
+  },
   list: { padding: 16, paddingBottom: 40 },
   card: {
     backgroundColor: '#1a1a24',

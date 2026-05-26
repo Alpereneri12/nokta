@@ -66,6 +66,14 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 16, color: COLORS.mint, marginBottom: 40, fontStyle: "italic" },
   inputBox: { backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 20, padding: 20, minHeight: 150, marginBottom: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
   input: { color: "#fff", fontSize: 18, lineHeight: 24 },
+  btn: {
+    shadowColor: COLORS.mint,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 10,
+    marginTop: 10,
+  },
   btnG: { padding: 18, borderRadius: 30, alignItems: "center" },
-  btnT: { fontWeight: "800", fontSize: 18, color: "#0A0A18" }
+  btnT: { fontWeight: "900", fontSize: 20, color: "#0A0A18", textTransform: "uppercase", letterSpacing: 1 }
 });
