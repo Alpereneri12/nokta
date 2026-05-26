@@ -1,11 +1,19 @@
-# NOKTA — NAIM's Orchestrated Knowledge-To-Artifact
+# Nokta - Fikir Kutusu (231118066 - Alperen Eri)
 
-![NOKTA](assets/nokta.jpeg)
+### 📋 Proje Bilgileri
+- **Seçilen Track:** Track 1 (Eğitim ve Gelişim Takip Sistemi)
+- **Okul No:** 231118066
+- **İsim:** Alperen Eri
 
-> The spec layer of the NAIM loop. NAIM builds. NOKTA thinks first.
+### 🚀 Expo QR Link
+<img width="238" height="254" alt="image" src="https://github.com/user-attachments/assets/7e1a0315-3026-4880-b579-5f501a41b41b" />
 
-**1 file. 0 human review. CI decides.**
 
-Nokta is part of the [NAIM](https://github.com/seyyah/naim) ecosystem — Naim Agentic Iterative Mobile. NAIM iterates on apps; NOKTA defines what to build before the first line of code.
+### 🎥 Demo Videosu (60 Saniye)
+(https://www.youtube.com/shorts/U22ndn50-mM)
 
-A single idea spark — a dot — enters the system. Guided LLM questioning expands it into a structured product spec. Dot. Line. Paragraph. Page.
+### 📝 Decision Log (Karar Günlüğü)
+1. **Teknoloji Seçimi:** React Native ve Expo tercih edildi çünkü hızlı prototipleme ve kolay dağıtım imkanı sağlıyor.
+2. **UI Tasarımı:** Karpathy'nin Software 2.0 vizyonuna uygun, minimalist ve kullanıcı odaklı bir arayüz (Tailwind benzeri style yapıları) kullanıldı.
+3. **Uzman Desteği:** Sisteme "Expert-in-the-loop" mantığıyla canlı destek mesaj kutusu entegre edildi.
+4. **Veri Yönetimi:** Local state kullanılarak görev takibi ve istatistiklerin anlık güncellenmesi sağlandı.
