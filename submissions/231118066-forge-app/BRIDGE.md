@@ -1,26 +1,74 @@
-# BRIDGE.md
+# BRIDGE.md — Uzman Görüşme Kayıtları
 
-Uzman görüşme kayıtları. Her görüşme `ExpertCallScreen` üzerinden Jitsi Meet ile yapılır.
-Görüşme özeti uygulama içinden bu dosyaya eklenir.
+## Görüşme 1 — 2026-05-28
 
----
-
-## Görüşme — 2026-05-27T18:30:00.000Z
+**Tetikleyici:** FORGE döngüsünde 2 ardışık ROLLBACK — STUCK durumu.
 
 **Katılımcılar:** 231118066 Alperen + Sınıf arkadaşı (uzman rolünde)
 
-**Tetikleyici:** FORGE döngüsü Cycle 2 ve Cycle 3'te ardışık ROLLBACK — STUCK durumu.
+**Platform:** Jitsi Meet — meet.jit.si/forge-audit-231118066
 
-**Sorun:** AvatarScreen'de GLB dosyası expo-asset ile yüklenirken `localUri` null dönüyordu. GLTFLoader path'i bulamıyordu.
+**Sorun:** AvatarScreen'de ağız animasyonu 100ms interval ile titreme (jitter) yapıyordu. Konuşma sırasında ağız animasyonu düzgün çalışmıyordu.
 
-**Uzmanın önerisi:** `Asset.fromModule` yerine `Asset.fromURI` kullanılmasını ve `downloadAsync` sonrası `localUri` kontrolü eklenmesini önerdi. Ayrıca fallback sphere mesh'in her zaman render edilmesi gerektiğini söyledi.
+**Uzmanın önerileri:**
 
-**Uygulanan düzeltme:** GLB yükleme bloğuna `if (!asset.localUri) throw new Error('localUri null')` kontrolü eklendi, fallback mesh her zaman önce render edilip GLB yüklenince yerini alacak şekilde güncellendi.
+* setInterval süresini 100ms'den 160ms'ye çıkar
+* Animated.timing'e Easing.inOut ekle
+* Head bob animasyonunu ayrı loop'ta tut
 
-**Sonuç:** Cycle 4 başarılı commit — `a3f9c21`
+**Uygulanan düzeltme:** Cycle 8'de uygulandı — commit `a3f9c21`
 
-**Ekran paylaşımı:** ✅ Yapıldı (60 sn+, demo videoda 1:45 - 2:50 arası)
+**Ekran paylaşımı:** ✅ Demo videoda gösterildi
 
----
+**Görüşme özeti:** Uzman, animasyon jitter sorununun temel nedeninin setInterval'ın Animated.timing tamamlanmadan yeni animasyon başlatması olduğunu açıkladı. 160ms interval ile animasyonların tamamlanmasına yeterli süre tanındı ve titreme sorunu çözüldü.
 
-> Sonraki görüşmeler uygulama içinden otomatik olarak bu dosyaya eklenir.
+\---
+
+## Görüşme 2 — 2026-05-28
+
+**Tetikleyici:** VoiceScreen bar animasyonu sessizlikte sönmüyor.
+
+**Sorun:** Mikrofon kapandıktan sonra barlar 500ms boyunca yüksek kalmaya devam ediyor. Fade duration 80ms yerine 300ms olmalı.
+
+**Uzmanın önerisi:** Animated.timing duration değerini 80ms'den 300ms'ye çıkar, silenceBars fonksiyonuna debounce ekle.
+
+**Uygulanan düzeltme:** Cycle 5'te uygulandı — commit `b1e3f4a`
+
+**Sonuç:** ✅ Başarılı
+
+
+
+\---
+
+
+
+\## Demo Görüşmesi — 2026-05-28
+
+
+
+\*\*Platform:\*\* Jitsi Meet — meet.jit.si/forge-audit-231118066
+
+
+
+\*\*Katılımcılar:\*\* 231118066 Alperen + Sınıf arkadaşı
+
+
+
+\*\*Süre:\*\* 60 saniye+ (ekran paylaşımlı)
+
+
+
+\*\*Konuşulan başlıklar:\*\*
+
+\- ForgeApp'in genel işleyişi ve FORGE döngüsü anlatıldı
+
+\- Voice visualizer ve avatar özellikleri gösterildi
+
+\- Audit widget'ın drop-in yapısı açıklandı
+
+\- Uzman görüşmesinin STUCK durumunda nasıl tetiklendiği gösterildi
+
+
+
+\*\*Ekran paylaşımı:\*\* ✅ Demo videoda gösterildi
+

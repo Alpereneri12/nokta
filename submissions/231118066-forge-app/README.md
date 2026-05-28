@@ -7,8 +7,15 @@
 
 ## Demo Video
 
-> 3 dakikalık demo video: Phase A (ses viz) + Phase B (avatar + lipsync) + Phase C (uzman görüşmesi)
-> [demo-video-link-buraya]
+🎬 **[Demo Video — Phase A + B + C](https://www.youtube.com/watch?v=jHfM2VTH_Wc)**
+
+---
+
+## Expo / APK
+
+📱 **Expo Go:** [exp://172.20.10.2:8081](exp://172.20.10.2:8081)
+
+📦 **APK:** `app-release.apk` (submissions klasöründe mevcut)
 
 ---
 
@@ -17,29 +24,31 @@
 ```
 231118066-forge-app/
 ├── app/
-│   ├── App.tsx                          # Root — 6 ekran + FORGE stuck logic
+│   ├── App.tsx
+│   ├── app.json
+│   ├── eas.json
+│   ├── app-release.apk
 │   ├── assets/
-│   │   └── avatar.glb                  # Kendi yüzümden Avaturn.me ile üretildi
+│   │   └── avatar.glb          ← avaturn.me ile kendi yüzümden üretildi
 │   └── src/
 │       ├── audit/
-│       │   ├── AuditWidget.tsx          # Drop-in widget (değişmedi)
-│       │   └── types.ts
+│       │   └── AuditWidget.tsx  ← drop-in widget (sıfır coupling)
 │       └── screens/
-│           ├── HomeScreen.tsx           # Güncel — yeni nav butonları
-│           ├── TasksScreen.tsx          # Önceki hafta
-│           ├── SettingsScreen.tsx       # Önceki hafta
-│           ├── VoiceScreen.tsx          # YENİ — expo-av + bar viz
-│           ├── AvatarScreen.tsx         # YENİ — GLB + lipsync + expo-speech
-│           └── ExpertCallScreen.tsx     # YENİ — Jitsi WebRTC
+│           ├── HomeScreen.tsx
+│           ├── TasksScreen.tsx
+│           ├── SettingsScreen.tsx
+│           ├── VoiceScreen.tsx      ← Phase A: ses görselleştirici
+│           ├── AvatarScreen.tsx     ← Phase B: avatar + lipsync
+│           └── ExpertCallScreen.tsx ← Phase C: Jitsi WebRTC
 ├── reports/
-│   ├── capture-cta.md                  # Hafta 1
-│   ├── reports-export.md               # Hafta 1
-│   ├── forge-ratchet.md                # Hafta 1
-│   ├── voice-viz.md                    # Bu hafta
-│   ├── avatar-glb.md                   # Bu hafta
-│   └── expert-call-ux.md              # Bu hafta
-├── FORGE.md                            # 8 cycle: 5 success + 2 rollback + 1 stuck
-├── BRIDGE.md                           # Uzman görüşme özeti
+│   ├── voice-viz.md
+│   ├── avatar-glb.md
+│   └── expert-call-ux.md
+├── avatar.glb
+├── app-release.apk
+├── FORGE.md      ← 8 cycle ledger
+├── BRIDGE.md     ← uzman görüşme özeti
+├── PERSONAS.md   ← Junior-Sen / Senior-Sen dokümantasyonu
 └── README.md
 ```
 
@@ -47,33 +56,35 @@
 
 ## Phase A — Ses Görselleştirici
 
-- `expo-av` ile mikrofon girişi yakalanır
-- Metering (dB) değeri RMS'e normalize edilir
-- 24 bar `Animated.spring` ile güncellenir (<80ms latency)
+- Mikrofon girişi `expo-audio` ile yakalanır (native) / Web Audio API (web)
+- RMS değeri: `clamp((db + 60) / 60, 0, 1)`
+- 28 bar `Animated.spring` ile güncellenir (<80ms latency)
 - Sessizlikte söner, konuşunca canlanır
 
 ## Phase B — Avatar + Lipsync
 
-- `avaturn.me` ile kendi yüzümden üretilen `.glb` dosyası
-- `expo-gl` + `three.js` ile 3D render
-- `expo-speech` ile Türkçe TTS
-- Konuşma sırasında ağız animasyonu (`Animated.timing` loop)
+- `avaturn.me` ile kendi yüzümden üretilen `.glb` dosyası (`avatar.glb`)
+- 2D animasyonlu yüz: göz kırpma, kafa sallama, ağız açılma
+- `expo-speech` ile Türkçe TTS (tr-TR)
+- **Junior-Sen** (pitch: 0.9, rate: 0.8) — destekleyici, yavaş
+- **Senior-Sen** (pitch: 1.3, rate: 1.1) — doğrudan, hızlı
 
 ## Phase C — Uzman Görüntülü Çağrı
 
 - FORGE döngüsünde 2 ardışık FAIL/ROLLBACK → `ExpertCallScreen` otomatik açılır
-- Jitsi Meet WebView — ekran paylaşımı + ses + video
+- Jitsi Meet: `meet.jit.si/forge-audit-231118066`
+- Ekran paylaşımı + ses + video
 - Görüşme özeti `BRIDGE.md`'ye kaydedilir
 
 ---
 
 ## FORGE Özeti
 
-| Hafta | Başarılı | Rollback | STUCK | Expert Call |
-|-------|----------|----------|-------|-------------|
-| 1-2   | 3        | 1        | 0     | 0           |
-| Final | 2        | 2        | 1     | 1           |
-| Toplam| 5        | 3        | 1     | 1           |
+| Hafta | Başarılı | Rollback | STUCK | Expert Call | kg |
+|-------|----------|----------|-------|-------------|-----|
+| 1-2   | 3        | 1        | 0     | 0           | 4   |
+| Final | 2        | 2        | 1     | 1           | 4   |
+| Toplam| 5        | 3        | 1     | 1           | 8   |
 
 Detaylar: [`FORGE.md`](./FORGE.md)
 

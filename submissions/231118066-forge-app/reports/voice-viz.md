@@ -1,17 +1,14 @@
-# Audit Report
+# voice-viz audit
 
-**Screen:** `Voice`
-**Timestamp:** 2026-05-27T10:15:22.000Z
-**Note:** Bar animasyonu sessizlikte tamamen sönmüyor — konuşma bitince barlar minimum seviyeye inmesi 300ms+ sürüyor. Geçiş yumuşak değil.
+## Issue
 
-## Annotations
-
-- **Box 1:** x=24 y=180 w=320 h=130 — Bar görselleştirici: sessizlik → aktif geçiş çok ani
+Bars don't fade smoothly on silence.
 
 ## Hypothesis
 
-> `silenceBars()` animasyonu çok hızlı tetikleniyor, RMS threshold 0 olunca anında söndürüyor. Kademeli fade gerekiyor.
+Fade duration is too fast (80ms) and the visual read feels like flicker instead of decay.
 
-## Expected Fix
+## Fix
 
-> `silenceBars()` içinde `Animated.timing` duration değeri 80ms'den 300ms'ye çıkarılmalı. Ayrıca RMS < 0.05 olduğunda direkt sıfırlamak yerine önceki değerden kademeli azaltma yapılmalı.
+Increase silent fade duration to **300ms** so the transition is perceivable and stable.
+

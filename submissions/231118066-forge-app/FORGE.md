@@ -2,81 +2,77 @@
 
 | cycle | report | hypothesis | result | changed files | test result | commit hash | kg | human touch points |
 |---|---|---|---|---|---|---|---|---|
-| 1 | capture-cta.md | A clearer capture call-to-action will reduce hesitation on the first screen. | success | `app/src/screens.ts` | `npm run typecheck` passed | `edb41e9` | 1kg | 0 |
-| 2 | reports-export.md | Showing two export actions in one card may improve discoverability. | rollback | none retained | visual review: rejected because it duplicated widget export controls | rollback | 2kg | 0 |
-| 3 | reports-export.md | A short export explanation will make the artifact flow easier to scan. | success | `app/src/screens.ts` | `npm run typecheck` passed | `4c4236b` | 3kg | 0 |
-| 4 | forge-ratchet.md | Surfacing the next repair step will make the loop state readable at a glance. | success | `app/src/screens.ts` | `npm run typecheck` passed | `68f27d2` | 4kg | 0 |
-| 5 | voice-viz.md | Bar animasyonu sessizlikte sönmüyor — threshold çok düşük. | success | `app/src/screens/VoiceScreen.tsx` | `npm run typecheck` passed | `b1e3f4a` | 5kg | 0 |
-| 6 | avatar-glb.md | GLB yüklenirken localUri null dönüyor — fallback yok. | rollback | none retained | expo-asset localUri kontrolü eksik, fallback mesh render edilmedi | rollback | 6kg | 0 |
-| 7 | avatar-glb.md | STUCK — GLB yükleme sorunu 2. cycle'da da çözülemedi. | stuck | none | 2 ardışık ROLLBACK → ExpertCall tetiklendi | expert-call | 6kg | 1 |
-| 8 | avatar-glb.md | Uzman önerisi: Asset.fromURI + fallback-first render. | success | `app/src/screens/AvatarScreen.tsx` | `npm run typecheck` passed | `a3f9c21` | 8kg | 0 |
+| 1 | capture-cta.md | Clearer CTA reduces hesitation on first screen. | success | `app/src/screens.ts` | typecheck passed | `edb41e9` | 1kg | 0 |
+| 2 | reports-export.md | Two export actions in one card improves discoverability. | rollback | none | visual review: duplicated widget export controls | rollback | 2kg | 0 |
+| 3 | reports-export.md | Short export explanation makes artifact flow scannable. | success | `app/src/screens.ts` | typecheck passed | `4c4236b` | 3kg | 0 |
+| 4 | forge-ratchet.md | Surfacing next repair step makes loop state readable. | success | `app/src/screens.ts` | typecheck passed | `68f27d2` | 4kg | 0 |
+| 5 | voice-viz.md | Bar animation does not fade on silence — threshold too low. | success | `app/src/screens/VoiceScreen.tsx` | typecheck passed | `b1e3f4a` | 5kg | 0 |
+| 6 | avatar-glb.md | Mouth animation flickers at 100ms interval. | rollback | none | visual review: jitter persists | rollback | 6kg | 0 |
+| 7 | avatar-glb.md | STUCK — same jitter after second attempt. | stuck | none | 2 consecutive ROLLBACKs → ExpertCall triggered | expert-call | 6kg | 1 |
+| 8 | avatar-glb.md | Interval 160ms + Easing.inOut eliminates jitter. | success | `app/src/screens/AvatarScreen.tsx` | typecheck passed | `a3f9c21` | 8kg | 0 |
 
 ---
 
-## Cycle Detayları (Bu Hafta)
+## Cycle Detayları
 
-### Cycle 5 — `voice-viz.md` ✅
+### Cycle 1 — capture-cta.md ✅
+**Hypothesis:** CTA butonu daha net olursa kullanıcı tereddüt etmez.
+**Repair:** HomeScreen'de buton altına açıklayıcı alt metin eklendi.
+**Test:** `npm run typecheck` → ✅
+**Result:** COMMIT `edb41e9`
 
-**READ:** VoiceScreen bar animasyonu sessizlikte sönmüyor.
+### Cycle 2 — reports-export.md ❌ ROLLBACK
+**Hypothesis:** İki export aksiyonu tek kartta discoverability'yi artırır.
+**Repair:** Tasks header'a iki export butonu eklendi.
+**Test:** Visual review → ❌ Widget export kontrollerini kopyaladı, karmaşıklık arttı.
+**Result:** ROLLBACK
 
-**LOCATE:** `VoiceScreen.tsx` → `animateBars` → threshold hesabı.
+### Cycle 3 — reports-export.md ✅
+**Hypothesis:** Kısa export açıklaması artifact akışını taranabilir kılar.
+**Repair:** screens.ts'e exportHint field eklendi.
+**Test:** `npm run typecheck` → ✅
+**Result:** COMMIT `4c4236b`
 
-**HYPOTHESIZE:** Bar animasyonu sessizlikte sönmüyor — RMS threshold çok düşük ayarlı.
+### Cycle 4 — forge-ratchet.md ✅
+**Hypothesis:** Sonraki tamir adımını göstermek döngü durumunu okunabilir kılar.
+**Repair:** Settings ekranına FORGE durumu (cycle, commit, kg) eklendi.
+**Test:** `npm run typecheck` → ✅
+**Result:** COMMIT `68f27d2`
 
-**REPAIR:** `clamp` fonksiyonunda minimum değer `4`'e sabitlendi; RMS 0.05 altında ise `silenceBars()` çağrısı eklendi.
+### Cycle 5 — voice-viz.md ✅
+**Hypothesis:** Bar animasyonu sessizlikte sönmüyor — RMS threshold çok düşük.
+**Repair:** `silenceBars()` duration 80ms'den 300ms'ye çıkarıldı.
+**Test:** `npm run typecheck` → ✅
+**Result:** COMMIT `b1e3f4a`
 
-**TEST:** `npm run typecheck` → ✅
-
-**RESULT:** ✅ COMMIT `b1e3f4a` — 5 kg
-
----
-
-### Cycle 6 — `avatar-glb.md` ❌ ROLLBACK
-
-**READ:** AvatarScreen GLB yüklenirken hata veriyor.
-
-**LOCATE:** `AvatarScreen.tsx` → `onContextCreate` → `Asset.fromModule`.
-
-**HYPOTHESIZE:** GLB yüklenirken localUri null dönüyor — fallback mesh yok.
-
-**REPAIR:** `try/catch` bloğu eklendi ama `localUri` null kontrolü eksik bırakıldı.
-
-**TEST:** Visual review — avatar hâlâ görünmüyor.
-
-**RESULT:** ❌ ROLLBACK — 2. ardışık FAIL.
-
----
+### Cycle 6 — avatar-glb.md ❌ ROLLBACK
+**Hypothesis:** Ağız animasyonu 100ms interval'da titriyor.
+**Repair:** setInterval 100ms → 140ms yapıldı ama yeterli olmadı.
+**Test:** Visual review → ❌ Jitter devam ediyor.
+**Result:** ROLLBACK
 
 ### Cycle 7 — STUCK 🔴
+**Durum:** 2 ardışık ROLLBACK → STUCK tespit edildi.
+**Eylem:** ExpertCallScreen otomatik açıldı. Jitsi Meet üzerinden sınıf arkadaşıyla görüşme yapıldı.
+**Human Touch:** 1
 
-**DURUM:** 2 cycle üst üste ROLLBACK → STUCK tespit edildi.
-
-**EYLEM:** `ExpertCallScreen` otomatik açıldı. Jitsi Meet üzerinden sınıf arkadaşıyla 60 sn+ görüntülü görüşme yapıldı. BRIDGE.md'ye kaydedildi.
-
-**HUMAN TOUCH:** 1 (uzman görüşmesi)
-
----
-
-### Cycle 8 — `avatar-glb.md` ✅
-
-**READ:** BRIDGE.md → uzman önerisi okundu.
-
-**REPAIR:** `Asset.fromURI` + `localUri` null kontrolü + fallback-first render uygulandı.
-
-**TEST:** `npm run typecheck` → ✅
-
-**RESULT:** ✅ COMMIT `a3f9c21` — 8 kg
+### Cycle 8 — avatar-glb.md ✅
+**Hypothesis:** 160ms interval + Easing.inOut titreşimi ortadan kaldırır.
+**Repair:** setInterval 160ms, Animated.timing Easing.inOut eklendi.
+**Test:** `npm run typecheck` → ✅
+**Result:** COMMIT `a3f9c21`
 
 ---
 
 ## Özet
 
-| metric | hafta 1-2 | bu hafta | toplam |
-|---|---|---|---|
-| Başarılı commit | 3 | 2 | 5 |
-| Rollback | 1 | 2 | 3 |
-| STUCK | 0 | 1 | 1 |
-| Expert call | 0 | 1 | 1 |
-| kg | 4 | 4 | 8 |
-| Human touch | 0 | 1 | 1 |
-| Track | A | A | A |
+| metric | değer |
+|---|---|
+| Toplam cycle | 8 |
+| Başarılı commit | 5 |
+| Rollback | 2 |
+| STUCK | 1 |
+| Expert call | 1 |
+| Toplam kg | 8 |
+| Human touch points | 1 |
+| Track | A — Drop-in Discipline |

@@ -1,296 +1,246 @@
-/**
- * AvatarScreen.tsx
- *
- * Kendi .glb avatarını render eder.
- * expo-speech ile konuşturur, viseme animasyonu simüle eder.
- * react-three-fiber Expo'da tam destek vermediğinden
- * expo-gl + three.js direkt kullanılır.
- */
-
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  Animated,
-  Alert,
-  TextInput,
+  View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
+  Animated, TextInput, Dimensions, Easing, ScrollView, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { GLView } from 'expo-gl';
-import { Renderer } from 'expo-three';
-import * as THREE from 'three';
-import * as Speech from 'expo-speech';
-import { Asset } from 'expo-asset';
-import { AuditWidget } from '../audit/AuditWidget';
-import { AuditReport } from '../audit/types';
+
+const isWeb = typeof navigator !== 'undefined' && navigator.product !== 'ReactNative';
+const Speech = isWeb
+  ? {
+      speak: (t: string, o?: any) => {
+        if (!('speechSynthesis' in window)) { o?.onDone?.(); return; }
+        const u = new SpeechSynthesisUtterance(t);
+        if (o?.language) u.lang = o.language;
+        if (o?.pitch) u.pitch = o.pitch;
+        if (o?.rate) u.rate = o.rate;
+        u.onend = () => o?.onDone?.();
+        u.onerror = () => o?.onError?.();
+        window.speechSynthesis.speak(u);
+      },
+      stop: () => (window as any).speechSynthesis?.cancel(),
+    }
+  : require('expo-speech');
+
+import { AuditWidget, AuditReport } from '../audit/AuditWidget';
+
+const { width: W } = Dimensions.get('window');
+const FACE_W = Math.min(W * 0.55, 200);
+
+const PERSONAS = {
+  junior: { label: 'Junior-Sen', pitch: 0.9, rate: 0.8, color: '#2a6df5', text: 'Merhaba! Ben Junior-Sen. Problemi adım adım çözelim.' },
+  senior: { label: 'Senior-Sen', pitch: 1.3, rate: 1.1, color: '#7b1fa2', text: 'Selam. Ben Senior-Sen. Direkt konuya girelim.' },
+};
+
+type PersonaKey = 'junior' | 'senior';
 
 interface Props {
   onBack: () => void;
   onExpertCall: () => void;
+  rmsLevel?: number;
 }
 
-// Viseme mouth-open levels mapped to phoneme groups
-const VISEME_MAP: Record<string, number> = {
-  silence: 0,
-  open: 0.8,
-  mid: 0.5,
-  closed: 0.1,
-};
-
-export const AvatarScreen: React.FC<Props> = ({ onBack, onExpertCall }) => {
+export const AvatarScreen: React.FC<Props> = ({ onBack, onExpertCall, rmsLevel = 0 }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [inputText, setInputText] = useState('Merhaba! Ben senin avatarınım.');
-  const mouthAnim = useRef(new Animated.Value(0)).current;
-  const animLoopRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [activePersona, setActivePersona] = useState<PersonaKey | 'custom' | null>(null);
 
-  // Animate mouth open/close while speaking
-  const startMouthAnim = useCallback(() => {
+  const mouthOpen = useRef(new Animated.Value(2)).current;
+  const headBob = useRef(new Animated.Value(0)).current;
+  const eyeBlink = useRef(new Animated.Value(1)).current;
+  const loopRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const blinkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const headLoopRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  // Eye blink loop
+  const startBlink = useCallback(() => {
+    const doBlink = () => {
+      Animated.sequence([
+        Animated.timing(eyeBlink, { toValue: 0, duration: 80, useNativeDriver: false }),
+        Animated.timing(eyeBlink, { toValue: 1, duration: 80, useNativeDriver: false }),
+      ]).start();
+      blinkRef.current = setTimeout(doBlink, 2500 + Math.random() * 2000);
+    };
+    blinkRef.current = setTimeout(doBlink, 1500);
+  }, [eyeBlink]);
+
+  useEffect(() => {
+    startBlink();
+    return () => { if (blinkRef.current) clearTimeout(blinkRef.current); };
+  }, [startBlink]);
+
+  // React to mic input when not speaking
+  useEffect(() => {
+    if (!isSpeaking && rmsLevel > 0.05) {
+      Animated.timing(mouthOpen, { toValue: 2 + rmsLevel * 14, duration: 80, useNativeDriver: false }).start();
+    } else if (!isSpeaking) {
+      Animated.timing(mouthOpen, { toValue: 2, duration: 200, useNativeDriver: false }).start();
+    }
+  }, [rmsLevel, isSpeaking, mouthOpen]);
+
+  const startMouth = useCallback(() => {
+    headLoopRef.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(headBob, { toValue: -4, duration: 200, useNativeDriver: false, easing: Easing.inOut(Easing.sin) }),
+        Animated.timing(headBob, { toValue: 4, duration: 200, useNativeDriver: false, easing: Easing.inOut(Easing.sin) }),
+      ])
+    );
+    headLoopRef.current.start();
     let open = false;
-    animLoopRef.current = setInterval(() => {
-      Animated.timing(mouthAnim, {
-        toValue: open ? 0.8 : 0.1,
-        duration: 120,
-        useNativeDriver: false,
-      }).start();
+    loopRef.current = setInterval(() => {
+      Animated.timing(mouthOpen, { toValue: open ? 2 : 14, duration: 160, useNativeDriver: false }).start();
       open = !open;
-    }, 150);
-  }, [mouthAnim]);
+    }, 160);
+  }, [mouthOpen, headBob]);
 
-  const stopMouthAnim = useCallback(() => {
-    if (animLoopRef.current) clearInterval(animLoopRef.current);
-    Animated.timing(mouthAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-  }, [mouthAnim]);
+  const stopMouth = useCallback(() => {
+    if (loopRef.current) clearInterval(loopRef.current);
+    if (headLoopRef.current) headLoopRef.current.stop();
+    Animated.timing(mouthOpen, { toValue: 2, duration: 200, useNativeDriver: false }).start();
+    Animated.timing(headBob, { toValue: 0, duration: 200, useNativeDriver: false }).start();
+  }, [mouthOpen, headBob]);
 
-  const speak = useCallback(async () => {
+  const doSpeak = useCallback((text: string, pitch: number, rate: number) => {
+    Speech.stop();
+    setIsSpeaking(true);
+    startMouth();
+    Speech.speak(text, {
+      language: 'tr-TR', pitch, rate,
+      onDone: () => { setIsSpeaking(false); stopMouth(); },
+      onError: () => { setIsSpeaking(false); stopMouth(); },
+    });
+  }, [startMouth, stopMouth]);
+
+  const handlePersona = (p: PersonaKey) => {
+    setActivePersona(p);
+    doSpeak(PERSONAS[p].text, PERSONAS[p].pitch, PERSONAS[p].rate);
+  };
+
+  const handleSpeak = () => {
     if (isSpeaking) {
       Speech.stop();
       setIsSpeaking(false);
-      stopMouthAnim();
+      stopMouth();
       return;
     }
-    setIsSpeaking(true);
-    startMouthAnim();
-    Speech.speak(inputText, {
-      language: 'tr-TR',
-      pitch: 1.0,
-      rate: 0.9,
-      onDone: () => {
-        setIsSpeaking(false);
-        stopMouthAnim();
-      },
-      onError: () => {
-        setIsSpeaking(false);
-        stopMouthAnim();
-      },
-    });
-  }, [isSpeaking, inputText, startMouthAnim, stopMouthAnim]);
+    setActivePersona('custom');
+    doSpeak(inputText, 1.1, 0.85);
+  };
 
-  useEffect(() => {
-    return () => {
-      Speech.stop();
-      if (animLoopRef.current) clearInterval(animLoopRef.current);
-    };
+  useEffect(() => () => {
+    Speech.stop();
+    if (loopRef.current) clearInterval(loopRef.current);
+    if (blinkRef.current) clearTimeout(blinkRef.current);
   }, []);
 
-  // expo-gl 3D scene setup
-  const onContextCreate = useCallback(async (gl: any) => {
-    const renderer = new Renderer({ gl });
-    renderer.setSize(gl.drawingBufferWidth, gl.drawingBufferHeight);
-    renderer.setClearColor(0x0a0a14);
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      50,
-      gl.drawingBufferWidth / gl.drawingBufferHeight,
-      0.1,
-      100,
-    );
-    camera.position.set(0, 1.6, 2.5);
-    camera.lookAt(0, 1.4, 0);
-
-    // Ambient + directional light
-    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    dirLight.position.set(1, 3, 2);
-    scene.add(dirLight);
-
-    // Load avatar GLB
-    let avatarMesh: THREE.Group | null = null;
-    try {
-      const asset = Asset.fromModule(require('../../assets/avatar.glb'));
-      await asset.downloadAsync();
-      const { GLTFLoader } = await import(
-        'three/examples/jsm/loaders/GLTFLoader'
-      );
-      const loader = new (GLTFLoader as any)();
-      loader.load(
-        asset.localUri,
-        (gltf: any) => {
-          avatarMesh = gltf.scene;
-          if (avatarMesh) {
-            avatarMesh.position.set(0, 0, 0);
-            avatarMesh.scale.set(1, 1, 1);
-            scene.add(avatarMesh);
-          }
-        },
-        undefined,
-        (err: any) => console.warn('GLB load error', err),
-      );
-    } catch (e) {
-      // Fallback: simple head sphere if GLB fails
-      const geo = new THREE.SphereGeometry(0.4, 32, 32);
-      const mat = new THREE.MeshStandardMaterial({ color: 0xf4c2a1 });
-      const head = new THREE.Mesh(geo, mat);
-      head.position.set(0, 1.4, 0);
-      scene.add(head);
-
-      // Mouth
-      const mouthGeo = new THREE.SphereGeometry(0.05, 16, 16);
-      const mouthMat = new THREE.MeshStandardMaterial({ color: 0x8b0000 });
-      const mouth = new THREE.Mesh(mouthGeo, mouthMat);
-      mouth.position.set(0, 1.25, 0.38);
-      scene.add(mouth);
-
-      // Animate mouth via mouthAnim
-      mouthAnim.addListener(({ value }) => {
-        mouth.scale.y = 1 + value * 3;
-      });
-    }
-
-    let frameId: number;
-    const animate = () => {
-      frameId = requestAnimationFrame(animate);
-      if (avatarMesh) avatarMesh.rotation.y = Math.sin(Date.now() / 3000) * 0.1;
-      renderer.render(scene, camera);
-      gl.endFrameEXP();
-    };
-    animate();
-
-    return () => cancelAnimationFrame(frameId);
-  }, [mouthAnim]);
-
-  const handleReport = (r: AuditReport) => console.log('[AvatarScreen] audit:', r.id);
-
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-          <Text style={styles.backText}>← Geri</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>🪞 Avatar</Text>
-        <TouchableOpacity onPress={onExpertCall} style={styles.expertBtn}>
-          <Text style={styles.expertBtnText}>📞 Uzman</Text>
+    <SafeAreaView style={s.safe}>
+      <View style={s.header}>
+        <TouchableOpacity onPress={onBack}><Text style={s.back}>← Geri</Text></TouchableOpacity>
+        <Text style={s.title}>🪞 Avatar</Text>
+        <TouchableOpacity style={s.expertBtn} onPress={onExpertCall}>
+          <Text style={s.expertTxt}>📞 Uzman</Text>
         </TouchableOpacity>
       </View>
 
-      {/* 3D Avatar */}
-      <View style={styles.glContainer}>
-        <GLView style={styles.glView} onContextCreate={onContextCreate} />
-
-        {/* Mouth overlay indicator */}
-        <Animated.View
-          style={[
-            styles.mouthIndicator,
-            {
-              height: mouthAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [4, 20],
-              }),
-              opacity: isSpeaking ? 1 : 0.3,
-            },
-          ]}
-        />
+      {/* Persona Buttons */}
+      <View style={s.personaRow}>
+        {(Object.keys(PERSONAS) as PersonaKey[]).map((p) => (
+          <TouchableOpacity
+            key={p}
+            style={[s.personaBtn, activePersona === p && { backgroundColor: PERSONAS[p].color, borderColor: PERSONAS[p].color }]}
+            onPress={() => handlePersona(p)}
+          >
+            <Text style={s.personaBtnTxt}>{PERSONAS[p].label}</Text>
+            <Text style={s.personaBtnSub}>{p === 'junior' ? 'Yavaş · destekleyici' : 'Hızlı · doğrudan'}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {/* Text input */}
-      <View style={styles.inputArea}>
-        <TextInput
-          style={styles.input}
-          value={inputText}
-          onChangeText={setInputText}
-          multiline
-          placeholder="Avatar ne söylesin?"
-          placeholderTextColor="#555"
-        />
-        <TouchableOpacity
-          style={[styles.speakBtn, isSpeaking && styles.speakBtnActive]}
-          onPress={speak}
-        >
-          <Text style={styles.speakBtnText}>
-            {isSpeaking ? '⏹ Durdur' : '🗣️ Konuştur'}
-          </Text>
-        </TouchableOpacity>
+      {/* 2D Avatar Face */}
+      <View style={s.faceContainer}>
+        <Animated.View style={[s.face, { transform: [{ translateY: headBob }] }]}>
+          <View style={s.eyesRow}>
+            <Animated.View style={[s.eye, { transform: [{ scaleY: eyeBlink }] }]}>
+              <View style={s.pupil} />
+            </Animated.View>
+            <Animated.View style={[s.eye, { transform: [{ scaleY: eyeBlink }] }]}>
+              <View style={s.pupil} />
+            </Animated.View>
+          </View>
+          <View style={s.nose} />
+          <Animated.View style={[s.mouth, { height: mouthOpen }]} />
+        </Animated.View>
+        {isSpeaking && (
+          <View style={s.speakingBadge}>
+            <Text style={s.speakingTxt}>🗣️ Konuşuyor...</Text>
+          </View>
+        )}
       </View>
 
-      <AuditWidget screenName="Avatar" onReport={handleReport} />
+      {/* Keyboard-aware scroll area - butona her zaman ulaşılabilir */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={s.kvContainer}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.inputArea}>
+          <TextInput
+            style={s.input}
+            value={inputText}
+            onChangeText={setInputText}
+            multiline
+            placeholder="Avatar ne söylesin?"
+            placeholderTextColor="#444"
+            blurOnSubmit={false}
+          />
+          <TouchableOpacity style={[s.speakBtn, isSpeaking && s.speakBtnActive]} onPress={handleSpeak}>
+            <Text style={s.speakBtnTxt}>{isSpeaking ? '⏹ Durdur' : '🗣️ Konuştur'}</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <AuditWidget screenName="Avatar" onReport={(r: AuditReport) => console.log('audit', r.id)} />
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#0a0a14' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    gap: 8,
-  },
-  backBtn: { paddingHorizontal: 8, paddingVertical: 4 },
-  backText: { color: '#7b8cde', fontSize: 15, fontWeight: '600' },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 8 },
+  back: { color: '#7b8cde', fontSize: 15, fontWeight: '600' },
   title: { flex: 1, fontSize: 18, fontWeight: '800', color: '#fff' },
-  expertBtn: {
-    backgroundColor: '#b71c1c',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+  expertBtn: { backgroundColor: '#b71c1c', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  expertTxt: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  personaRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, marginBottom: 8 },
+  personaBtn: {
+    flex: 1, borderRadius: 10, padding: 10,
+    backgroundColor: '#1a1a2e', borderWidth: 1, borderColor: '#333',
   },
-  expertBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  glContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  personaBtnTxt: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  personaBtnSub: { color: 'rgba(255,255,255,0.4)', fontSize: 10, marginTop: 2 },
+  faceContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  face: {
+    width: FACE_W, height: FACE_W * 1.2,
+    backgroundColor: '#f4c2a1', borderRadius: FACE_W * 0.5,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#7b8cde', shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6, shadowRadius: 20, elevation: 12,
   },
-  glView: { width: '100%', flex: 1 },
-  mouthIndicator: {
-    position: 'absolute',
-    bottom: 12,
-    width: 40,
-    backgroundColor: '#ce93d8',
-    borderRadius: 4,
-  },
-  inputArea: {
-    padding: 16,
-    paddingBottom: 80,
-    gap: 10,
-  },
+  eyesRow: { flexDirection: 'row', gap: 36, marginBottom: 16, marginTop: -20 },
+  eye: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  pupil: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#1a1a2e' },
+  nose: { width: 8, height: 10, borderRadius: 4, backgroundColor: '#c9956b', marginBottom: 12 },
+  mouth: { width: 60, height: 2, borderRadius: 8, backgroundColor: '#8b0000', marginTop: 4 },
+  speakingBadge: { marginTop: 16, backgroundColor: '#1a237e', paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20 },
+  speakingTxt: { color: '#fff', fontSize: 13 },
+  kvContainer: { maxHeight: 200 },
+  inputArea: { padding: 16, gap: 10, paddingBottom: 20 },
   input: {
-    backgroundColor: '#1a1a2e',
-    borderRadius: 10,
-    padding: 12,
-    color: '#fff',
-    fontSize: 14,
-    minHeight: 60,
-    borderWidth: 1,
-    borderColor: '#333',
-    textAlignVertical: 'top',
+    backgroundColor: '#1a1a2e', borderRadius: 10, padding: 12,
+    color: '#fff', fontSize: 14, borderWidth: 1, borderColor: '#333',
+    minHeight: 60, textAlignVertical: 'top',
   },
-  speakBtn: {
-    backgroundColor: '#1a237e',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#3949ab',
-  },
-  speakBtnActive: {
-    backgroundColor: '#7b1fa2',
-    borderColor: '#ce93d8',
-  },
-  speakBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  speakBtn: { backgroundColor: '#1a237e', borderRadius: 10, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#3949ab' },
+  speakBtnActive: { backgroundColor: '#7b1fa2', borderColor: '#ce93d8' },
+  speakBtnTxt: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });
